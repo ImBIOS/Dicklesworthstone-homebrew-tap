@@ -3,7 +3,7 @@ cask "ntm" do
   name "ntm"
   desc "Named Tmux Manager - Orchestrate AI coding agents in tmux sessions"
   homepage "https://github.com/Dicklesworthstone/ntm"
-  version "1.4.1"
+  version "1.5.0"
 
   livecheck do
     skip "Auto-generated on release."
@@ -19,17 +19,17 @@ cask "ntm" do
 
   on_macos do
     url "https://github.com/Dicklesworthstone/ntm/releases/download/v#{version}/ntm_#{version}_darwin_all.tar.gz"
-    sha256 "efdcfec7c2451efe8c654e4b1b150c1a3b5574848a0b5f9f3ecec31e966b4b3d"
+    sha256 "df240766243e8c8ca9ae9ee1bdefe123e015d5916aac138031612bacb90a4314"
   end
 
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/ntm/releases/download/v#{version}/ntm_#{version}_linux_amd64.tar.gz"
-      sha256 "f6681c7fb8765b66d838f6babe5037dce313c868c327d213f0e040b3d2171441"
+      sha256 "4db3b285d3c5bd9c0af5c7a00ea54c37d3e7788b61ad12f15175bc75f4a81860"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/ntm/releases/download/v#{version}/ntm_#{version}_linux_arm64.tar.gz"
-      sha256 "624fa6e663e44331e911f3c54a39240602a05dfc75f5ef6feb88352284119823"
+      sha256 "225fdeb9e1d8d0575e7a2d2e8d19cca87a792b3c7051e180d1cee0ce1d8b9161"
     end
   end
 
