@@ -1,0 +1,155 @@
+name: Auto-Update Formulas
+
+on:
+  # Triggered by source repos on release
+  repository_dispatch:
+    types: [formula-update]
+
+  # Manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      tool:
+        description: "Tool to update (ru, cass, xf, cm, ubs)"
+        required: true
+        type: choice
+        options:
+          - ru
+          - cass
+          - xf
+          - cm
+          - ubs
+      version:
+        description: "Version to update to (e.g., 1.2.3)"
+        required: true
+        type: string
+
+  # Fallback: Check for updates every 6 hours
+  schedule:
+    - cron: "0 */6 * * *"
+
+jobs:
+  # Handle repository_dispatch events
+  update-from-dispatch:
+    name: Update from Dispatch
+    runs-on: ubuntu-latest
+    if: github.event_name == 'repository_dispatch' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine tool and version
+        id: params
+        run: |
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "tool=${{ github.event.client_payload.tool }}" >> $GITHUB_OUTPUT
+            echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "tool=${{ inputs.tool }}" >> $GITHUB_OUTPUT
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update formula
+        run: |
+          chmod +x scripts/update-formula.sh
+          ./scripts/update-formula.sh "${{ steps.params.outputs.tool }}" "${{ steps.params.outputs.version }}"
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git add Formula/
+          git commit -m "chore(formula): update ${{ steps.params.outputs.tool }} to v${{ steps.params.outputs.version }}"
+          git push
+
+  # Scheduled check for updates
+  check-updates:
+    name: Check for Updates
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tool: ru
+            repo: Dicklesworthstone/repo_updater
+          - tool: cass
+            repo: Dicklesworthstone/coding_agent_session_search
+          - tool: xf
+            repo: Dicklesworthstone/xf
+          - tool: cm
+            repo: Dicklesworthstone/cass_memory_system
+          - tool: ubs
+            repo: Dicklesworthstone/ultimate_bug_scanner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current version in formula
+        id: current
+        run: |
+          formula="Formula/${{ matrix.tool }}.rb"
+          if [[ ! -f "$formula" ]]; then
+            echo "Formula not found, skipping"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          version=$(grep 'version "' "$formula" | head -1 | sed 's/.*version "\([^"]*\)".*/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "Current version of ${{ matrix.tool }}: $version"
+
+      - name: Get latest release version
+        id: latest
+        if: steps.current.outputs.skip != 'true'
+        run: |
+          latest=$(curl -s "https://api.github.com/repos/${{ matrix.repo }}/releases/latest" | jq -r '.tag_name // empty' | sed 's/^v//')
+          if [[ -z "$latest" ]]; then
+            echo "Could not determine latest version"
+            echo "skip=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "version=$latest" >> $GITHUB_OUTPUT
+          echo "Latest version of ${{ matrix.tool }}: $latest"
+
+      - name: Compare versions
+        id: compare
+        if: steps.current.outputs.skip != 'true' && steps.latest.outputs.skip != 'true'
+        run: |
+          current="${{ steps.current.outputs.version }}"
+          latest="${{ steps.latest.outputs.version }}"
+
+          if [[ "$current" == "$latest" ]]; then
+            echo "Already up to date"
+            echo "needs_update=false" >> $GITHUB_OUTPUT
+          else
+            echo "Update available: $current -> $latest"
+            echo "needs_update=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update formula
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          chmod +x scripts/update-formula.sh
+          ./scripts/update-formula.sh "${{ matrix.tool }}" "${{ steps.latest.outputs.version }}"
+
+      - name: Commit and push
+        if: steps.compare.outputs.needs_update == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+
+          git add Formula/
+          git commit -m "chore(formula): auto-update ${{ matrix.tool }} to v${{ steps.latest.outputs.version }}"
+          git push
