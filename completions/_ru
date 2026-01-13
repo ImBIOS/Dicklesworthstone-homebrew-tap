@@ -1,0 +1,110 @@
+#compdef ru
+# Zsh completion for ru (Repo Updater)
+# Generated for homebrew-tap distribution
+
+_ru() {
+    local -a commands
+    local -a global_opts
+
+    commands=(
+        'sync:Clone missing repos and pull updates (default)'
+        'status:Show repository status without making changes'
+        'init:Initialize configuration directory and files'
+        'add:Add a repository to your list'
+        'remove:Remove a repository from your list'
+        'list:Show configured repositories'
+        'doctor:Run system diagnostics'
+        'self-update:Update ru to the latest version'
+        'config:Show or set configuration values'
+        'prune:Find and manage orphan repositories'
+        'import:Import repos from file with auto visibility detection'
+        'review:Review GitHub issues and PRs using Claude Code'
+    )
+
+    global_opts=(
+        '-h[Show help message]'
+        '--help[Show help message]'
+        '-v[Show version]'
+        '--version[Show version]'
+        '--json[Output JSON to stdout]'
+        '-q[Minimal output (errors only)]'
+        '--quiet[Minimal output (errors only)]'
+        '--verbose[Detailed output]'
+        '--non-interactive[Never prompt (for CI/automation)]'
+    )
+
+    _arguments -C \
+        '1: :->command' \
+        '*:: :->args' \
+        && return 0
+
+    case $state in
+        command)
+            _describe -t commands 'ru commands' commands
+            _describe -t options 'global options' global_opts
+            ;;
+        args)
+            case $words[1] in
+                sync)
+                    _arguments \
+                        '--clone-only[Only clone missing repos]' \
+                        '--pull-only[Only pull existing repos]' \
+                        '--autostash[Stash changes before pull]' \
+                        '--rebase[Use git pull --rebase]' \
+                        '--dry-run[Show what would happen]' \
+                        '--dir[Override projects directory]:directory:_directories' \
+                        '(-j --parallel)'{-j,--parallel}'[Sync N repos concurrently]:number' \
+                        '--resume[Resume interrupted sync]' \
+                        '--restart[Start fresh, discard state]' \
+                        '--timeout[Network timeout]:seconds' \
+                        $global_opts
+                    ;;
+                status)
+                    _arguments \
+                        '--fetch[Fetch remotes first (default)]' \
+                        '--no-fetch[Skip fetch, use cached state]' \
+                        $global_opts
+                    ;;
+                init)
+                    _arguments \
+                        '--example[Include example repositories]' \
+                        $global_opts
+                    ;;
+                add)
+                    _arguments \
+                        '--private[Add to private.txt]' \
+                        '*:repository:' \
+                        $global_opts
+                    ;;
+                remove)
+                    _arguments \
+                        '*:repository:' \
+                        $global_opts
+                    ;;
+                import)
+                    _arguments \
+                        '*:file:_files' \
+                        $global_opts
+                    ;;
+                review)
+                    _arguments \
+                        '--plan[Generate review plans]' \
+                        '--apply[Execute approved plans]' \
+                        '--dry-run[Show what would happen]' \
+                        '--mode[Review mode]:mode:(local ntm)' \
+                        '--max-repos[Limit number of repos]:number' \
+                        '--repos[Filter repos by pattern]:pattern' \
+                        '--skip-days[Skip recently reviewed]:days' \
+                        '--parallel[Concurrent sessions]:number' \
+                        '--push[Allow pushing changes]' \
+                        $global_opts
+                    ;;
+                list|doctor|self-update|config|prune)
+                    _arguments $global_opts
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_ru "$@"
