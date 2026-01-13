@@ -75,7 +75,24 @@ case "$TOOL" in
     # Update version
     sed -i.bak "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_FILE"
 
-    # This is a simplified approach - more complex sed would be needed for multi-arch
+    # Update checksums using Ruby-aware replacement
+    # macOS Intel (on_macos + on_intel block)
+    ruby -i.bak -e '
+      content = File.read(ARGV[0])
+      # Replace macOS Intel checksum (first sha256 in on_macos/on_intel)
+      content.gsub!(/on_macos do\s+on_intel do\s+url[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_INTEL"'\"")
+      }
+      # Replace macOS ARM checksum (on_arm block inside on_macos)
+      content.gsub!(/on_arm do\s+url[^\n]+darwin[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_ARM"'\"")
+      }
+      # Replace Linux Intel checksum
+      content.gsub!(/on_linux do\s+on_intel do\s+url[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$LINUX_INTEL"'\"")
+      }
+      File.write(ARGV[0], content)
+    ' "$FORMULA_FILE"
     ;;
 
   cm)
@@ -92,6 +109,24 @@ case "$TOOL" in
 
     # Update version
     sed -i.bak "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_FILE"
+
+    # Update checksums using Ruby-aware replacement
+    ruby -i.bak -e '
+      content = File.read(ARGV[0])
+      # Replace macOS Intel checksum (on_macos/on_intel block)
+      content.gsub!(/on_macos do\s+on_intel do\s+url[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_INTEL_CHECKSUM"'\"")
+      }
+      # Replace macOS ARM checksum (on_arm block inside on_macos)
+      content.gsub!(/on_arm do\s+url[^\n]+arm64[^\n]*\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_ARM_CHECKSUM"'\"")
+      }
+      # Replace Linux Intel checksum
+      content.gsub!(/on_linux do\s+on_intel do\s+url[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$LINUX_CHECKSUM"'\"")
+      }
+      File.write(ARGV[0], content)
+    ' "$FORMULA_FILE"
     ;;
 
   ubs)
