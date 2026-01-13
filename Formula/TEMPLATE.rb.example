@@ -1,0 +1,128 @@
+# Template for Dicklesworthstone Stack Homebrew Formulas
+#
+# Copy this file to <toolname>.rb and customize:
+#   cp TEMPLATE.rb.example mytool.rb
+#
+# Naming convention: class name must be CamelCase of file name
+#   mytool.rb -> class Mytool < Formula
+#   my_tool.rb -> class MyTool < Formula
+#
+# After creating, validate with:
+#   ./scripts/validate-formulas.sh mytool
+#   ./scripts/test-formula.sh mytool
+
+class ToolName < Formula
+  # REQUIRED: Clear, one-line description (keep under 80 chars)
+  desc "Brief description of what the tool does"
+
+  # REQUIRED: Link to the tool's homepage (usually GitHub repo)
+  homepage "https://github.com/Dicklesworthstone/tool_name"
+
+  # REQUIRED: Semantic version matching the release
+  version "1.0.0"
+
+  # REQUIRED: SPDX license identifier
+  # Common: "MIT", "Apache-2.0", "GPL-3.0-only"
+  license "MIT"
+
+  # ========== DOWNLOAD URLS ==========
+  # Option 1: Multi-architecture (RECOMMENDED for binary releases)
+  on_macos do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/tool_name/releases/download/v#{version}/tool_name_#{version}_darwin_amd64.tar.gz"
+      sha256 "REPLACE_WITH_ACTUAL_SHA256_FOR_DARWIN_AMD64"
+    end
+    on_arm do
+      url "https://github.com/Dicklesworthstone/tool_name/releases/download/v#{version}/tool_name_#{version}_darwin_arm64.tar.gz"
+      sha256 "REPLACE_WITH_ACTUAL_SHA256_FOR_DARWIN_ARM64"
+    end
+  end
+
+  on_linux do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/tool_name/releases/download/v#{version}/tool_name_#{version}_linux_amd64.tar.gz"
+      sha256 "REPLACE_WITH_ACTUAL_SHA256_FOR_LINUX_AMD64"
+    end
+    on_arm do
+      url "https://github.com/Dicklesworthstone/tool_name/releases/download/v#{version}/tool_name_#{version}_linux_arm64.tar.gz"
+      sha256 "REPLACE_WITH_ACTUAL_SHA256_FOR_LINUX_ARM64"
+    end
+  end
+
+  # Option 2: Single URL (for scripts or universal binaries)
+  # url "https://github.com/Dicklesworthstone/tool_name/archive/refs/tags/v#{version}.tar.gz"
+  # sha256 "REPLACE_WITH_SHA256"
+
+  # ========== DEPENDENCIES ==========
+  # Only add if actually required at runtime
+  # depends_on "tmux"              # Hard dependency
+  # depends_on "gh" => :recommended  # Soft dependency (installed by default)
+  # depends_on "python@3.12"       # Specific version
+
+  # ========== INSTALLATION ==========
+  def install
+    # For pre-built binaries:
+    bin.install "tool_name"
+
+    # For scripts:
+    # bin.install "tool_name.sh" => "tool_name"
+
+    # Shell completions (if the tool generates them)
+    # Generate at install time:
+    # system bin/"tool_name", "completion", "bash", "-o", "tool_name.bash"
+    # bash_completion.install "tool_name.bash"
+    #
+    # Or install from release archive:
+    # bash_completion.install "completions/tool_name.bash" => "tool_name"
+    # zsh_completion.install "completions/_tool_name"
+    # fish_completion.install "completions/tool_name.fish"
+
+    # Man pages (if included):
+    # man1.install "doc/tool_name.1"
+  end
+
+  # ========== POST-INSTALL MESSAGE ==========
+  # Only include if there's important setup info
+  def caveats
+    <<~EOS
+      To get started with tool_name:
+
+        tool_name init
+
+      For shell integration, add to your shell rc file:
+
+        eval "$(tool_name init bash)"   # for bash
+        eval "$(tool_name init zsh)"    # for zsh
+    EOS
+  end
+
+  # ========== TESTS ==========
+  # REQUIRED: Must include functional tests
+  test do
+    # Basic: version check
+    assert_match version.to_s, shell_output("#{bin}/tool_name --version")
+
+    # Better: actual functionality test
+    # assert_match "expected", shell_output("#{bin}/tool_name --help")
+    #
+    # Best: create test input and verify output
+    # (testpath/"input.txt").write("test data")
+    # system bin/"tool_name", "process", testpath/"input.txt"
+    # assert_predicate testpath/"output.txt", :exist?
+  end
+end
+
+# ========== CHECKSUM GENERATION ==========
+# To generate SHA256 checksums for a release:
+#
+#   # Download the release files
+#   curl -LO "https://github.com/.../releases/download/v1.0.0/tool_darwin_amd64.tar.gz"
+#   curl -LO "https://github.com/.../releases/download/v1.0.0/tool_darwin_arm64.tar.gz"
+#   curl -LO "https://github.com/.../releases/download/v1.0.0/tool_linux_amd64.tar.gz"
+#   curl -LO "https://github.com/.../releases/download/v1.0.0/tool_linux_arm64.tar.gz"
+#
+#   # Generate checksums
+#   sha256sum tool_*.tar.gz
+#
+# Or use Homebrew's built-in helper:
+#   brew fetch --build-from-source ./Formula/tool.rb

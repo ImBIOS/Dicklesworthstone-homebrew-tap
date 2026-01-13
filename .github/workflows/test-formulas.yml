@@ -12,9 +12,21 @@ on:
       - "Casks/**"
 
 jobs:
+  validate:
+    name: Validate Formula Standards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate formula standards
+        run: |
+          chmod +x scripts/validate-formulas.sh
+          ./scripts/validate-formulas.sh
+
   audit:
     name: Audit Formulas
     runs-on: ubuntu-latest
+    needs: validate
     steps:
       - uses: actions/checkout@v4
 
