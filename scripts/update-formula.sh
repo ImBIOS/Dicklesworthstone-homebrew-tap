@@ -39,24 +39,43 @@ case "$TOOL" in
     ;;
 
   cass)
-    # cass has multi-arch binaries
-    declare -A CHECKSUMS
-
+    # cass has multi-arch binaries (macOS Intel/ARM + Linux Intel/ARM)
     echo "Fetching checksums for cass..."
-    for arch in "aarch64-apple-darwin" "x86_64-apple-darwin" "x86_64-unknown-linux-gnu" "aarch64-unknown-linux-gnu"; do
-      URL="https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v${VERSION}/coding-agent-search-${arch}.tar.xz.sha256"
-      CHECKSUMS[$arch]=$(curl -sL "$URL" | cut -d' ' -f1)
-      echo "  $arch: ${CHECKSUMS[$arch]}"
-    done
+
+    MACOS_ARM=$(curl -sL "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v${VERSION}/coding-agent-search-aarch64-apple-darwin.tar.xz.sha256" | cut -d' ' -f1)
+    MACOS_INTEL=$(curl -sL "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v${VERSION}/coding-agent-search-x86_64-apple-darwin.tar.xz.sha256" | cut -d' ' -f1)
+    LINUX_ARM=$(curl -sL "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v${VERSION}/coding-agent-search-aarch64-unknown-linux-gnu.tar.xz.sha256" | cut -d' ' -f1)
+    LINUX_INTEL=$(curl -sL "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v${VERSION}/coding-agent-search-x86_64-unknown-linux-gnu.tar.xz.sha256" | cut -d' ' -f1)
+
+    echo "  macOS ARM: $MACOS_ARM"
+    echo "  macOS Intel: $MACOS_INTEL"
+    echo "  Linux ARM: $LINUX_ARM"
+    echo "  Linux Intel: $LINUX_INTEL"
 
     # Update version
     sed -i.bak "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_FILE"
 
-    # Update checksums for each architecture
-    # macOS ARM
-    sed -i.bak "/on_arm do/,/end/{s/sha256 \"[a-f0-9]*\"/sha256 \"${CHECKSUMS[aarch64-apple-darwin]}\"/}" "$FORMULA_FILE"
-    # macOS Intel
-    sed -i.bak "/on_intel do/,/end/{s/sha256 \"[a-f0-9]*\"/sha256 \"${CHECKSUMS[x86_64-apple-darwin]}\"/}" "$FORMULA_FILE"
+    # Update checksums using Ruby-aware replacement (match by URL content to disambiguate blocks)
+    ruby -i.bak -e '
+      content = File.read(ARGV[0])
+      # Replace macOS Intel checksum (url contains x86_64-apple-darwin)
+      content.gsub!(/url[^\n]+x86_64-apple-darwin[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_INTEL"'\"")
+      }
+      # Replace macOS ARM checksum (url contains aarch64-apple-darwin)
+      content.gsub!(/url[^\n]+aarch64-apple-darwin[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_ARM"'\"")
+      }
+      # Replace Linux Intel checksum (url contains x86_64-unknown-linux-gnu)
+      content.gsub!(/url[^\n]+x86_64-unknown-linux-gnu[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$LINUX_INTEL"'\"")
+      }
+      # Replace Linux ARM checksum (url contains aarch64-unknown-linux-gnu)
+      content.gsub!(/url[^\n]+aarch64-unknown-linux-gnu[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$LINUX_ARM"'\"")
+      }
+      File.write(ARGV[0], content)
+    ' "$FORMULA_FILE"
     ;;
 
   xf)
