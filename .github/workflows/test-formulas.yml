@@ -10,6 +10,15 @@ on:
     paths:
       - "Formula/**"
       - "Casks/**"
+  schedule:
+    # Weekly Monday 6am UTC - catch dependency/runner updates that break formulas
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      formula:
+        description: "Specific formula to test (leave empty for all)"
+        required: false
+        type: string
 
 jobs:
   validate:
@@ -100,6 +109,14 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
+      - name: Record platform info
+        run: |
+          echo "### Platform Info - macOS Intel" >> $GITHUB_STEP_SUMMARY
+          echo "- OS: macOS 13 (Ventura)" >> $GITHUB_STEP_SUMMARY
+          echo "- Arch: $(uname -m)" >> $GITHUB_STEP_SUMMARY
+          echo "- Homebrew: $(brew --version | head -1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
       - name: Install and test formulas
         id: test
         run: |
@@ -175,6 +192,14 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
+      - name: Record platform info
+        run: |
+          echo "### Platform Info - macOS ARM" >> $GITHUB_STEP_SUMMARY
+          echo "- OS: macOS 14 (Sonoma)" >> $GITHUB_STEP_SUMMARY
+          echo "- Arch: $(uname -m)" >> $GITHUB_STEP_SUMMARY
+          echo "- Homebrew: $(brew --version | head -1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
       - name: Install and test formulas
         id: test
         run: |
@@ -249,6 +274,14 @@ jobs:
 
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Record platform info
+        run: |
+          echo "### Platform Info - Linux x86" >> $GITHUB_STEP_SUMMARY
+          echo "- OS: Ubuntu 22.04 LTS" >> $GITHUB_STEP_SUMMARY
+          echo "- Arch: $(uname -m)" >> $GITHUB_STEP_SUMMARY
+          echo "- Homebrew: $(brew --version | head -1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
 
       - name: Install and test formulas
         id: test
