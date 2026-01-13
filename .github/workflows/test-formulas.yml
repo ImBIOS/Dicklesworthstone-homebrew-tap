@@ -1,0 +1,304 @@
+name: Test Formulas
+
+on:
+  push:
+    paths:
+      - "Formula/**"
+      - "Casks/**"
+      - ".github/workflows/test-formulas.yml"
+  pull_request:
+    paths:
+      - "Formula/**"
+      - "Casks/**"
+
+jobs:
+  audit:
+    name: Audit Formulas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Audit all formulas
+        run: |
+          shopt -s nullglob
+          formulas=(Formula/*.rb)
+
+          if [ ${#formulas[@]} -eq 0 ]; then
+            echo "No formulas found (only .gitkeep), skipping audit"
+            exit 0
+          fi
+
+          failed=0
+          for formula in "${formulas[@]}"; do
+            # Skip .gitkeep
+            [[ "$formula" == *".gitkeep" ]] && continue
+
+            name=$(basename "$formula" .rb)
+            echo "::group::Auditing $name"
+
+            if brew audit --strict --online "$formula" 2>&1; then
+              echo "Audit passed for $name"
+            else
+              echo "::error::Audit failed for $name"
+              failed=1
+            fi
+
+            echo "::endgroup::"
+          done
+
+          exit $failed
+
+      - name: Audit all casks
+        run: |
+          shopt -s nullglob
+          casks=(Casks/*.rb)
+
+          if [ ${#casks[@]} -eq 0 ]; then
+            echo "No casks found, skipping audit"
+            exit 0
+          fi
+
+          failed=0
+          for cask in "${casks[@]}"; do
+            name=$(basename "$cask" .rb)
+            echo "::group::Auditing cask $name"
+
+            if brew audit --cask "$cask" 2>&1; then
+              echo "Audit passed for cask $name"
+            else
+              echo "::error::Audit failed for cask $name"
+              failed=1
+            fi
+
+            echo "::endgroup::"
+          done
+
+          exit $failed
+
+  install-test-macos-intel:
+    name: Install Test (macOS Intel)
+    runs-on: macos-13
+    needs: audit
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install and test formulas
+        id: test
+        run: |
+          shopt -s nullglob
+          formulas=(Formula/*.rb)
+
+          if [ ${#formulas[@]} -eq 0 ]; then
+            echo "No formulas to test"
+            exit 0
+          fi
+
+          mkdir -p /tmp/formula-logs
+          failed=0
+
+          for formula in "${formulas[@]}"; do
+            [[ "$formula" == *".gitkeep" ]] && continue
+
+            tool=$(basename "$formula" .rb)
+            log="/tmp/formula-logs/${tool}-install.log"
+
+            echo "::group::Testing $tool on macOS Intel"
+            echo "=== Testing $tool ===" | tee "$log"
+            echo "Platform: $(uname -sm)" | tee -a "$log"
+            echo "Homebrew: $(brew --version | head -1)" | tee -a "$log"
+
+            # Install
+            echo "--- Installing ---" | tee -a "$log"
+            if brew install --verbose "$formula" 2>&1 | tee -a "$log"; then
+              echo "Install succeeded" | tee -a "$log"
+            else
+              echo "::error::Install failed for $tool"
+              failed=1
+              echo "::endgroup::"
+              continue
+            fi
+
+            # Version check
+            echo "--- Version check ---" | tee -a "$log"
+            "$tool" --version 2>&1 | tee -a "$log" || "$tool" version 2>&1 | tee -a "$log" || echo "No version command"
+
+            # Smoke test
+            echo "--- Smoke test ---" | tee -a "$log"
+            if brew test "$formula" 2>&1 | tee -a "$log"; then
+              echo "Smoke test passed" | tee -a "$log"
+            else
+              echo "::warning::Smoke test failed for $tool (non-fatal)"
+            fi
+
+            # Uninstall
+            echo "--- Uninstall ---" | tee -a "$log"
+            brew uninstall "$tool" 2>&1 | tee -a "$log" || true
+
+            echo "::endgroup::"
+          done
+
+          exit $failed
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-logs-macos-intel
+          path: /tmp/formula-logs/
+          if-no-files-found: ignore
+
+  install-test-macos-arm:
+    name: Install Test (macOS ARM)
+    runs-on: macos-14
+    needs: audit
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install and test formulas
+        id: test
+        run: |
+          shopt -s nullglob
+          formulas=(Formula/*.rb)
+
+          if [ ${#formulas[@]} -eq 0 ]; then
+            echo "No formulas to test"
+            exit 0
+          fi
+
+          mkdir -p /tmp/formula-logs
+          failed=0
+
+          for formula in "${formulas[@]}"; do
+            [[ "$formula" == *".gitkeep" ]] && continue
+
+            tool=$(basename "$formula" .rb)
+            log="/tmp/formula-logs/${tool}-install.log"
+
+            echo "::group::Testing $tool on macOS ARM"
+            echo "=== Testing $tool ===" | tee "$log"
+            echo "Platform: $(uname -sm)" | tee -a "$log"
+            echo "Homebrew: $(brew --version | head -1)" | tee -a "$log"
+
+            # Install
+            echo "--- Installing ---" | tee -a "$log"
+            if brew install --verbose "$formula" 2>&1 | tee -a "$log"; then
+              echo "Install succeeded" | tee -a "$log"
+            else
+              echo "::error::Install failed for $tool"
+              failed=1
+              echo "::endgroup::"
+              continue
+            fi
+
+            # Version check
+            echo "--- Version check ---" | tee -a "$log"
+            "$tool" --version 2>&1 | tee -a "$log" || "$tool" version 2>&1 | tee -a "$log" || echo "No version command"
+
+            # Smoke test
+            echo "--- Smoke test ---" | tee -a "$log"
+            if brew test "$formula" 2>&1 | tee -a "$log"; then
+              echo "Smoke test passed" | tee -a "$log"
+            else
+              echo "::warning::Smoke test failed for $tool (non-fatal)"
+            fi
+
+            # Uninstall
+            echo "--- Uninstall ---" | tee -a "$log"
+            brew uninstall "$tool" 2>&1 | tee -a "$log" || true
+
+            echo "::endgroup::"
+          done
+
+          exit $failed
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-logs-macos-arm
+          path: /tmp/formula-logs/
+          if-no-files-found: ignore
+
+  install-test-linux:
+    name: Install Test (Linux)
+    runs-on: ubuntu-22.04
+    needs: audit
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install and test formulas
+        id: test
+        run: |
+          shopt -s nullglob
+          formulas=(Formula/*.rb)
+
+          if [ ${#formulas[@]} -eq 0 ]; then
+            echo "No formulas to test"
+            exit 0
+          fi
+
+          mkdir -p /tmp/formula-logs
+          failed=0
+
+          for formula in "${formulas[@]}"; do
+            [[ "$formula" == *".gitkeep" ]] && continue
+
+            tool=$(basename "$formula" .rb)
+            log="/tmp/formula-logs/${tool}-install.log"
+
+            echo "::group::Testing $tool on Linux"
+            echo "=== Testing $tool ===" | tee "$log"
+            echo "Platform: $(uname -sm)" | tee -a "$log"
+            echo "Homebrew: $(brew --version | head -1)" | tee -a "$log"
+
+            # Install
+            echo "--- Installing ---" | tee -a "$log"
+            if brew install --verbose "$formula" 2>&1 | tee -a "$log"; then
+              echo "Install succeeded" | tee -a "$log"
+            else
+              echo "::error::Install failed for $tool"
+              failed=1
+              echo "::endgroup::"
+              continue
+            fi
+
+            # Version check
+            echo "--- Version check ---" | tee -a "$log"
+            "$tool" --version 2>&1 | tee -a "$log" || "$tool" version 2>&1 | tee -a "$log" || echo "No version command"
+
+            # Smoke test
+            echo "--- Smoke test ---" | tee -a "$log"
+            if brew test "$formula" 2>&1 | tee -a "$log"; then
+              echo "Smoke test passed" | tee -a "$log"
+            else
+              echo "::warning::Smoke test failed for $tool (non-fatal)"
+            fi
+
+            # Uninstall
+            echo "--- Uninstall ---" | tee -a "$log"
+            brew uninstall "$tool" 2>&1 | tee -a "$log" || true
+
+            echo "::endgroup::"
+          done
+
+          exit $failed
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: install-logs-linux
+          path: /tmp/formula-logs/
+          if-no-files-found: ignore

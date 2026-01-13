@@ -116,6 +116,58 @@ brew reinstall dicklesworthstone/tap/<tool-name>
 
 Each tool has its own license. Check the individual repositories for details.
 
+## Development & Testing
+
+### Testing Formulas Locally
+
+Before submitting a formula, test it locally:
+
+```bash
+# Test a specific formula
+./scripts/test-formula.sh <formula-name>
+
+# Test all formulas
+./scripts/test-formula.sh --all
+
+# Custom log directory
+LOG_DIR=/my/logs ./scripts/test-formula.sh ru
+```
+
+The test script performs:
+1. Ruby syntax validation
+2. `brew audit --strict` linting
+3. Installation with verbose output
+4. Version command verification
+5. Smoke test (if defined in formula)
+6. Clean uninstallation
+
+Logs are saved to `/tmp/formula-tests/` by default.
+
+### CI Pipeline
+
+Every push to `Formula/` or `Casks/` triggers:
+
+1. **Audit**: `brew audit --strict --online` on all formulas
+2. **Install Test**: Install/test/uninstall on:
+   - macOS Intel (macos-13)
+   - macOS ARM (macos-14)
+   - Linux (ubuntu-22.04)
+3. **Log Artifacts**: Full installation logs uploaded for debugging
+
+### Writing Formula Tests
+
+Each formula should include a `test` block:
+
+```ruby
+test do
+  # Basic version check
+  system "#{bin}/tool", "--version"
+
+  # Or more comprehensive tests
+  assert_match "expected output", shell_output("#{bin}/tool --help")
+end
+```
+
 ## Contributing
 
 This tap is auto-generated and maintained. For issues with specific tools, please file issues in their respective repositories.
