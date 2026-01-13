@@ -1,0 +1,101 @@
+name: E2E Tests
+
+on:
+  workflow_run:
+    workflows: ["Test Formulas"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tool:
+        description: "Specific tool to test (leave empty for all)"
+        required: false
+        type: string
+  schedule:
+    # Weekly Wednesday 6am UTC (offset from install tests on Monday)
+    - cron: "0 6 * * 3"
+
+jobs:
+  e2e-macos-arm:
+    name: E2E Tests (macOS ARM)
+    runs-on: macos-14
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Tap repository
+        run: brew tap dicklesworthstone/tap
+
+      - name: Install all formulas
+        run: |
+          shopt -s nullglob
+          for formula in Formula/*.rb; do
+            [[ "$formula" == *".gitkeep"* ]] && continue
+            [[ "$formula" == *"TEMPLATE"* ]] && continue
+            name=$(basename "$formula" .rb)
+            echo "::group::Installing $name"
+            brew install "dicklesworthstone/tap/$name" || echo "::warning::Failed to install $name"
+            echo "::endgroup::"
+          done
+
+      - name: Run E2E tests
+        run: |
+          chmod +x scripts/e2e-test-suite.sh
+          if [[ -n "${{ inputs.tool }}" ]]; then
+            ./scripts/e2e-test-suite.sh "${{ inputs.tool }}"
+          else
+            ./scripts/e2e-test-suite.sh
+          fi
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs-macos-arm
+          path: /tmp/e2e-tests/
+          if-no-files-found: ignore
+
+  e2e-linux:
+    name: E2E Tests (Linux)
+    runs-on: ubuntu-22.04
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Tap repository
+        run: brew tap dicklesworthstone/tap
+
+      - name: Install all formulas
+        run: |
+          shopt -s nullglob
+          for formula in Formula/*.rb; do
+            [[ "$formula" == *".gitkeep"* ]] && continue
+            [[ "$formula" == *"TEMPLATE"* ]] && continue
+            name=$(basename "$formula" .rb)
+            echo "::group::Installing $name"
+            brew install "dicklesworthstone/tap/$name" || echo "::warning::Failed to install $name"
+            echo "::endgroup::"
+          done
+
+      - name: Run E2E tests
+        run: |
+          chmod +x scripts/e2e-test-suite.sh
+          if [[ -n "${{ inputs.tool }}" ]]; then
+            ./scripts/e2e-test-suite.sh "${{ inputs.tool }}"
+          else
+            ./scripts/e2e-test-suite.sh
+          fi
+
+      - name: Upload test logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs-linux
+          path: /tmp/e2e-tests/
+          if-no-files-found: ignore
