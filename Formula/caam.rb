@@ -5,34 +5,47 @@
 class Caam < Formula
   desc "CLI tool for managing AI coding agent accounts and configurations"
   homepage "https://github.com/Dicklesworthstone/coding_agent_account_manager"
-  version "0.1.2"
+  version "0.1.3"
   license "MIT"
 
   on_macos do
-    on_intel do
-      url "https://github.com/Dicklesworthstone/coding_agent_account_manager/releases/download/v0.1.2/caam_0.1.2_darwin_amd64.tar.gz"
-      sha256 "74a122474e6814b1733aea73a39a11a0e6cdec8664e0a3fbfc42b870fdc5466c"
+    if Hardware::CPU.intel?
+      url "https://github.com/Dicklesworthstone/coding_agent_account_manager/releases/download/v0.1.3/caam_0.1.3_darwin_amd64.tar.gz"
+      sha256 "b31d676b0164dafe7437acdbf92d5b84699cf0f4e038cc02770e09ea4cca92db"
+
+      def install
+        bin.install "caam"
+        generate_completions_from_executable(bin/"caam", "completion")
+      end
     end
-    on_arm do
-      url "https://github.com/Dicklesworthstone/coding_agent_account_manager/releases/download/v0.1.2/caam_0.1.2_darwin_arm64.tar.gz"
-      sha256 "065fb48fe89e777ba64986aceaa7af2a9d7479ec6d69a3b3f2ef2c6a0589b538"
+    if Hardware::CPU.arm?
+      url "https://github.com/Dicklesworthstone/coding_agent_account_manager/releases/download/v0.1.3/caam_0.1.3_darwin_arm64.tar.gz"
+      sha256 "064d2f47ed092d376f2179f40509d1bf6461cff2a74f15b6b72bd85b567dd26d"
+
+      def install
+        bin.install "caam"
+        generate_completions_from_executable(bin/"caam", "completion")
+      end
     end
   end
 
   on_linux do
-    on_intel do
-      url "https://github.com/Dicklesworthstone/coding_agent_account_manager/releases/download/v0.1.2/caam_0.1.2_linux_amd64.tar.gz"
-      sha256 "d4ee47ca4202b6d7d4d60dda36a4fe5dd0284e938b57c657ba4ab67b68c206b6"
+    if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
+      url "https://github.com/Dicklesworthstone/coding_agent_account_manager/releases/download/v0.1.3/caam_0.1.3_linux_amd64.tar.gz"
+      sha256 "d18fa5a606c2af25e4f7e7ca3eed6109feb8249ee9bf62b1b44312f737fffee7"
+      def install
+        bin.install "caam"
+        generate_completions_from_executable(bin/"caam", "completion")
+      end
     end
-    on_arm do
-      url "https://github.com/Dicklesworthstone/coding_agent_account_manager/releases/download/v0.1.2/caam_0.1.2_linux_arm64.tar.gz"
-      sha256 "0e709dafb7471764932ac6feac51585aeebfa4f4203e7f3660d2bc42e78774c7"
+    if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
+      url "https://github.com/Dicklesworthstone/coding_agent_account_manager/releases/download/v0.1.3/caam_0.1.3_linux_arm64.tar.gz"
+      sha256 "327c3cfeb88e4160f87d24c6c00d4eda922ca007acb8fdb291704fcf87e49b6f"
+      def install
+        bin.install "caam"
+        generate_completions_from_executable(bin/"caam", "completion")
+      end
     end
-  end
-
-  def install
-    bin.install "caam"
-    generate_completions_from_executable(bin/"caam", "completion")
   end
 
   def caveats
@@ -45,6 +58,6 @@ class Caam < Formula
   end
 
   test do
-    system bin/"caam", "--version"
+    system "#{bin}/caam", "--version"
   end
 end
