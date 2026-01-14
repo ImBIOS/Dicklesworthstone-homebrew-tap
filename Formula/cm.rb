@@ -23,7 +23,7 @@ class Cm < Formula
       url "https://github.com/Dicklesworthstone/cass_memory_system/releases/download/v#{version}/cass-memory-linux-x64"
       sha256 "c1cf33be88ca819f8c457f4519334fa99727da42e29832c71e99fd423f1a29f4"
     end
-    # Note: Linux ARM builds not currently available
+    # NOTE: Linux ARM builds not currently available
   end
 
   def install

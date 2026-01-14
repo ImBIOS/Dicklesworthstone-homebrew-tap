@@ -23,7 +23,7 @@ class Xf < Formula
       url "https://github.com/Dicklesworthstone/xf/releases/download/v#{version}/xf-x86_64-unknown-linux-gnu.tar.gz"
       sha256 "e8de166f4464ec46ae6b38d89194e5312f0cce06ae5398df48527d26d5bbe299"
     end
-    # Note: Linux ARM builds not currently available
+    # NOTE: Linux ARM builds not currently available
   end
 
   def install
