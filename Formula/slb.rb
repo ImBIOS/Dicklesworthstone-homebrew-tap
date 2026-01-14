@@ -9,43 +9,30 @@ class Slb < Formula
   license "MIT"
 
   on_macos do
-    if Hardware::CPU.intel?
+    on_intel do
       url "https://github.com/Dicklesworthstone/slb/releases/download/v0.2.0/slb_0.2.0_darwin_amd64.tar.gz"
       sha256 "39ecce943d9924c555a97184ea0745751048ca0a9acc8413ee4310afe2e1bed1"
-
-      def install
-        bin.install "slb"
-        generate_completions_from_executable(bin/"slb", "completion")
-      end
     end
-    if Hardware::CPU.arm?
+    on_arm do
       url "https://github.com/Dicklesworthstone/slb/releases/download/v0.2.0/slb_0.2.0_darwin_arm64.tar.gz"
       sha256 "0898545c20c9fe867cfb713e8fe94772dfc5da60dd9eee4a1dcaaffccf86386a"
-
-      def install
-        bin.install "slb"
-        generate_completions_from_executable(bin/"slb", "completion")
-      end
     end
   end
 
   on_linux do
-    if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
+    on_intel do
       url "https://github.com/Dicklesworthstone/slb/releases/download/v0.2.0/slb_0.2.0_linux_amd64.tar.gz"
       sha256 "9ceed8af0ec18b425bafda9bb6b289e1e42faec8584d84c4fea529fc1ca25597"
-      def install
-        bin.install "slb"
-        generate_completions_from_executable(bin/"slb", "completion")
-      end
     end
-    if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
+    on_arm do
       url "https://github.com/Dicklesworthstone/slb/releases/download/v0.2.0/slb_0.2.0_linux_arm64.tar.gz"
       sha256 "ba8d8ad2fdf6ffaf7556c55e5d5283893a8dfe1e30f41fc981fc3e28882e01fa"
-      def install
-        bin.install "slb"
-        generate_completions_from_executable(bin/"slb", "completion")
-      end
     end
+  end
+
+  def install
+    bin.install "slb"
+    generate_completions_from_executable(bin/"slb", "completion")
   end
 
   def caveats
@@ -60,6 +47,6 @@ class Slb < Formula
   end
 
   test do
-    system "#{bin}/slb", "version"
+    system bin/"slb", "version"
   end
 end
