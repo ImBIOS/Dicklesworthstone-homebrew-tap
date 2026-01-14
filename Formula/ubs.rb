@@ -33,7 +33,7 @@ class Ubs < Formula
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/ubs --version")
-    assert_match "scan", shell_output("#{bin}/ubs --help")
+    assert_match version.to_s, shell_output("#{bin/"ubs"} --version")
+    assert_match "scan", shell_output("#{bin/"ubs"} --help")
   end
 end

@@ -50,7 +50,7 @@ class Xf < Formula
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/xf --version")
-    assert_match "search", shell_output("#{bin}/xf --help")
+    assert_match version.to_s, shell_output("#{bin/"xf"} --version")
+    assert_match "search", shell_output("#{bin/"xf"} --help")
   end
 end
