@@ -44,6 +44,9 @@ jobs:
 
       - name: Audit all formulas
         run: |
+          # Tap the local checkout so we can audit by formula name
+          brew tap dicklesworthstone/tap .
+
           shopt -s nullglob
           formulas=(Formula/*.rb)
 
@@ -60,7 +63,7 @@ jobs:
             name=$(basename "$formula" .rb)
             echo "::group::Auditing $name"
 
-            if brew audit --strict --online "$formula" 2>&1; then
+            if brew audit --strict --online "dicklesworthstone/tap/$name" 2>&1; then
               echo "Audit passed for $name"
             else
               echo "::error::Audit failed for $name"
