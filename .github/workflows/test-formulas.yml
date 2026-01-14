@@ -92,7 +92,7 @@ jobs:
             name=$(basename "$cask" .rb)
             echo "::group::Auditing cask $name"
 
-            if brew audit --cask "$cask" 2>&1; then
+            if brew audit --cask "dicklesworthstone/tap/$name" 2>&1; then
               echo "Audit passed for cask $name"
             else
               echo "::error::Audit failed for cask $name"
