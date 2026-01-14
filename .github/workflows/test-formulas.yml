@@ -45,6 +45,8 @@ jobs:
       - name: Audit all formulas
         run: |
           # Tap the local checkout so we can audit by formula name
+          # First untap if already tapped (e.g., from Homebrew setup)
+          brew untap dicklesworthstone/tap 2>/dev/null || true
           brew tap dicklesworthstone/tap .
 
           shopt -s nullglob
