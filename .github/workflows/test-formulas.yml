@@ -104,6 +104,12 @@ jobs:
 
           exit $failed
 
+      - name: Cleanup tap
+        if: always()
+        run: |
+          # Untap before Homebrew action cleanup to avoid directory removal error
+          brew untap dicklesworthstone/tap 2>/dev/null || true
+
   install-test-macos-intel:
     name: Install Test (macOS Intel)
     runs-on: macos-13
