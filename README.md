@@ -228,6 +228,44 @@ brew uninstall <tool-name>
 brew untap dicklesworthstone/tap
 ```
 
+### Maintainer Troubleshooting
+
+#### Formula not auto-updating after release
+
+1. **Check GitHub Actions**: Look at the source repo's release workflow for errors
+2. **Verify PAT secrets**: Ensure `HOMEBREW_TAP_TOKEN` is configured in source repo
+3. **Check tap's auto-update workflow**: Look for failed `formula-update` events
+4. **Manual fallback**: Use `./scripts/update-formula.sh <tool> <version>`
+
+#### Formula syntax errors
+
+```bash
+# Validate formula locally
+brew audit --strict Formula/<tool>.rb
+
+# Check Ruby syntax
+ruby -c Formula/<tool>.rb
+
+# Run full CI validation
+./scripts/validate-formulas.sh <tool>
+```
+
+#### GoReleaser failures
+
+For GoReleaser tools (bv, caam, slb), check:
+
+1. **`.goreleaser.yaml`**: Ensure Homebrew/Scoop configuration is correct
+2. **GitHub token permissions**: GoReleaser needs `contents:write` and `packages:write`
+3. **Build errors**: Check the GoReleaser logs in GitHub Actions
+
+#### Missing or expired PAT
+
+Symptoms: Auto-updates stop working silently.
+
+1. Check if token is expired in source repo's secrets
+2. Regenerate fine-grained PAT with `contents:write` on this repo
+3. Update the `HOMEBREW_TAP_TOKEN` secret in source repos
+
 ## For Maintainers
 
 ### Manual Formula Update
@@ -323,6 +361,146 @@ class MyTool < Formula
   end
 end
 ```
+
+### Release Checklists by Tool Type
+
+#### GoReleaser Tools (bv, caam, slb)
+
+These tools use GoReleaser which automatically handles the entire release process including Homebrew/Scoop updates.
+
+```bash
+# 1. Update version in code (if applicable)
+# 2. Commit changes
+git add -A && git commit -m "Prepare release vX.Y.Z"
+
+# 3. Create and push tag
+git tag vX.Y.Z
+git push origin main --tags
+
+# 4. GoReleaser runs automatically via GitHub Actions
+# 5. Verify: Check that homebrew-tap and scoop-bucket were updated
+brew update && brew info dicklesworthstone/tap/<tool>
+```
+
+**What happens automatically:**
+- GoReleaser builds binaries for all platforms
+- Creates GitHub release with assets
+- Updates homebrew-tap formula via `goreleaser-action`
+- Updates scoop-bucket manifest via `goreleaser-action`
+
+#### Rust Tools (cass, xf)
+
+```bash
+# 1. Update version in Cargo.toml
+# 2. Update CHANGELOG.md (if applicable)
+# 3. Commit changes
+git add -A && git commit -m "Prepare release vX.Y.Z"
+
+# 4. Create and push tag
+git tag vX.Y.Z
+git push origin main --tags
+
+# 5. CI builds and creates GitHub release automatically
+# 6. CI triggers repository_dispatch to homebrew-tap and scoop-bucket
+# 7. Verify updates (may take a few minutes)
+brew update && brew info dicklesworthstone/tap/<tool>
+scoop update && scoop info <tool>
+```
+
+**What happens automatically:**
+- GitHub Actions builds binaries for all platforms (Linux, macOS Intel/ARM, Windows)
+- Creates GitHub release with tarballs/zips
+- Triggers `formula-update` event to homebrew-tap
+- Triggers `manifest-update` event to scoop-bucket
+- Tap/bucket workflows update formulas/manifests automatically
+
+#### Bun Tools (cm)
+
+```bash
+# 1. Update version in package.json
+# 2. Commit changes
+git add -A && git commit -m "Prepare release vX.Y.Z"
+
+# 3. Create and push tag
+git tag vX.Y.Z
+git push origin main --tags
+
+# 4. CI cross-compiles for all platforms and creates release
+# 5. CI triggers repository_dispatch to homebrew-tap and scoop-bucket
+# 6. Verify updates
+brew update && brew info dicklesworthstone/tap/cm
+scoop update && scoop info cm
+```
+
+#### Bash Scripts (ru, ubs)
+
+```bash
+# 1. Update VERSION file
+echo "X.Y.Z" > VERSION
+
+# 2. Commit changes
+git add -A && git commit -m "Prepare release vX.Y.Z"
+
+# 3. Create and push tag
+git tag vX.Y.Z
+git push origin main --tags
+
+# 4. CI creates release and triggers homebrew-tap update
+# 5. Verify formula update
+brew update && brew info dicklesworthstone/tap/<tool>
+```
+
+**Note:** Bash scripts are macOS/Linux only. No Scoop manifest updates needed.
+
+#### Manual Formula Update (Fallback)
+
+If automatic updates fail:
+
+```bash
+# In the homebrew-tap repository
+./scripts/update-formula.sh <tool> <version>
+
+# Review and commit
+git diff
+git add -A && git commit -m "Update <tool> to vX.Y.Z"
+git push origin main
+```
+
+### Required Secrets for Auto-Updates
+
+For source repositories to trigger automatic formula updates via `repository_dispatch`, they need a Personal Access Token (PAT) with permission to trigger workflows on this repository.
+
+#### Source Repository Secrets
+
+Each source repository needs these secrets configured:
+
+| Secret Name | Purpose | Required Scope |
+|-------------|---------|----------------|
+| `HOMEBREW_TAP_TOKEN` | Trigger `formula-update` event | `contents:write` on `Dicklesworthstone/homebrew-tap` |
+| `SCOOP_BUCKET_TOKEN` | Trigger `manifest-update` event | `contents:write` on `Dicklesworthstone/scoop-bucket` |
+
+#### Source Repositories and Their Secrets
+
+| Repository | Secrets Needed |
+|------------|----------------|
+| `repo_updater` (ru) | `HOMEBREW_TAP_TOKEN` |
+| `coding_agent_session_search` (cass) | `HOMEBREW_TAP_TOKEN`, `SCOOP_BUCKET_TOKEN` |
+| `xf` | `HOMEBREW_TAP_TOKEN`, `SCOOP_BUCKET_TOKEN` |
+| `cass_memory_system` (cm) | `HOMEBREW_TAP_TOKEN`, `SCOOP_BUCKET_TOKEN` |
+| `ultimate_bug_scanner` (ubs) | `HOMEBREW_TAP_TOKEN` |
+
+#### Creating the PAT
+
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Fine-grained tokens
+2. Create a new token with:
+   - **Token name**: `homebrew-tap-dispatch` (or similar)
+   - **Expiration**: Set as needed (1 year recommended)
+   - **Repository access**: "Only select repositories" → select `Dicklesworthstone/homebrew-tap`
+   - **Permissions**: Repository permissions → Contents → Read and write
+3. Repeat for `scoop-bucket` if needed
+4. Add the token as a secret in each source repository
+
+> **Security Note**: Use fine-grained PATs with minimal scope. Consider creating separate tokens for each purpose rather than one token with access to multiple repositories.
 
 ### CI Pipeline
 
