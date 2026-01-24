@@ -4,15 +4,33 @@
 class Tru < Formula
   desc "TOON encoder/decoder - Token-Optimized Object Notation"
   homepage "https://github.com/Dicklesworthstone/toon_rust"
-  url "https://github.com/Dicklesworthstone/toon_rust/archive/refs/tags/v0.1.1.tar.gz"
-  sha256 "0fdabd57e11d7edf40a99a5e6e9477ac53aed32d3f9778a0e8247a0be7c19b66"
+  version "0.1.1"
   license "MIT"
 
-  depends_on "rust" => :build
+  on_macos do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/toon_rust/releases/download/v#{version}/tru-darwin-amd64.tar.xz"
+      sha256 "12733939163d71ef321da2cd9924eb994d51d3000200415d3370f8a194b6c7b6"
+    end
+    on_arm do
+      url "https://github.com/Dicklesworthstone/toon_rust/releases/download/v#{version}/tru-darwin-arm64.tar.xz"
+      sha256 "047394c0457e6a134bb1e953c91e39d1e4ec85996a8ddc9924332fce525d9d6c"
+    end
+  end
+
+  on_linux do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/toon_rust/releases/download/v#{version}/tru-linux-amd64.tar.xz"
+      sha256 "a155e50383ca8388d3e84615776a70deb7ef6415f775879253cbcba6548dd5c9"
+    end
+    on_arm do
+      url "https://github.com/Dicklesworthstone/toon_rust/releases/download/v#{version}/tru-linux-arm64.tar.xz"
+      sha256 "ff7b25b10358ad96eaa204632b746033a014cffb8b71352132e9768678457acf"
+    end
+  end
 
   def install
-    system "cargo", "build", "--release", "--bin", "tru"
-    bin.install "target/release/tru"
+    bin.install "tru"
   end
 
   def caveats
