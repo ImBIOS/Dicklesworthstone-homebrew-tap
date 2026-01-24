@@ -4,28 +4,28 @@
 class Cass < Formula
   desc "Cross-agent session search - index and search AI coding agent conversations"
   homepage "https://github.com/Dicklesworthstone/coding_agent_session_search"
-  version "0.1.55"
+  version "0.1.61"
   license "MIT"
 
   on_macos do
     on_intel do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/coding-agent-search-x86_64-apple-darwin.tar.xz"
-      sha256 "c86441f8af59c02829f17d7609f368b3aeca832a4052bd803cb6c60826555e8e"
+      sha256 "Not"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/coding-agent-search-aarch64-apple-darwin.tar.xz"
-      sha256 "e9766e14cf7461d52eab8d441ef197f0f810499c891257abf5556cc9f581704b"
+      sha256 "Not"
     end
   end
 
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/coding-agent-search-x86_64-unknown-linux-gnu.tar.xz"
-      sha256 "0f41d67cfe22e22d9cc43df7e34f83b81fbd3c675eeecaa12f86e958712e654b"
+      sha256 "Not"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/coding-agent-search-aarch64-unknown-linux-gnu.tar.xz"
-      sha256 "6baa4b196de296bb90aee866868f0fea14e048cdaa45e2de4eb2c93a4862e4be"
+      sha256 "Not"
     end
   end
 
