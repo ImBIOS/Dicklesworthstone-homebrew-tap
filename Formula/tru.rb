@@ -4,8 +4,8 @@
 class Tru < Formula
   desc "TOON encoder/decoder - Token-Optimized Object Notation"
   homepage "https://github.com/Dicklesworthstone/toon_rust"
-  url "https://github.com/Dicklesworthstone/toon_rust/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "08b6c166045886a6670baad0383511d5934e7ef1c6cb66bfa5492aa2f9be9d18"
+  url "https://github.com/Dicklesworthstone/toon_rust/archive/refs/tags/v0.1.1.tar.gz"
+  sha256 "0fdabd57e11d7edf40a99a5e6e9477ac53aed32d3f9778a0e8247a0be7c19b66"
   license "MIT"
 
   depends_on "rust" => :build
