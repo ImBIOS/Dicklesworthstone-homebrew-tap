@@ -4,7 +4,7 @@
 class Cass < Formula
   desc "Cross-agent session search - index and search AI coding agent conversations"
   homepage "https://github.com/Dicklesworthstone/coding_agent_session_search"
-  version "0.1.61"
+  version "0.1.63"
   license "MIT"
 
   on_macos do
