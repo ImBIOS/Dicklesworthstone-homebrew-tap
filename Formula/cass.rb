@@ -8,24 +8,22 @@ class Cass < Formula
   license "MIT"
 
   on_macos do
-    on_intel do
-      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/coding-agent-search-x86_64-apple-darwin.tar.xz"
-      sha256 "Not"
-    end
     on_arm do
-      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/coding-agent-search-aarch64-apple-darwin.tar.xz"
-      sha256 "Not"
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-darwin-arm64.tar.gz"
+      sha256 "ceb5de8d647a26e9926366463df3e6fef6af31dba6c7db52ac50b88b92fc894a"
     end
+    # No Intel macOS build currently available
+    # Apple Silicon (arm64) binaries can run on Intel via Rosetta 2
   end
 
   on_linux do
     on_intel do
-      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/coding-agent-search-x86_64-unknown-linux-gnu.tar.xz"
-      sha256 "Not"
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-amd64.tar.gz"
+      sha256 "e5bb837cdff03627cf6bae19a41e0dd6e22f6121b8692cf222c9fc113019c708"
     end
     on_arm do
-      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/coding-agent-search-aarch64-unknown-linux-gnu.tar.xz"
-      sha256 "Not"
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-arm64.tar.gz"
+      sha256 "2dd9d6d70bdcb26b464f9f52b48f3a408f96fa5cb8dd8b27d51326c28ae80403"
     end
   end
 
