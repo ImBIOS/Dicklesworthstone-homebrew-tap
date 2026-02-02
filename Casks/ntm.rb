@@ -3,7 +3,7 @@ cask "ntm" do
   name "ntm"
   desc "Named Tmux Manager - Orchestrate AI coding agents in tmux sessions"
   homepage "https://github.com/Dicklesworthstone/ntm"
-  version "1.5.0"
+  version "1.7.0"
 
   livecheck do
     skip "Auto-generated on release."
@@ -19,29 +19,29 @@ cask "ntm" do
 
   on_macos do
     url "https://github.com/Dicklesworthstone/ntm/releases/download/v#{version}/ntm_#{version}_darwin_all.tar.gz"
-    sha256 "df240766243e8c8ca9ae9ee1bdefe123e015d5916aac138031612bacb90a4314"
+    sha256 "89bcebbd47b41b9fcae03ed3d1884bedd5c7911518682b6153ff928bf2f61263"
   end
 
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/ntm/releases/download/v#{version}/ntm_#{version}_linux_amd64.tar.gz"
-      sha256 "4db3b285d3c5bd9c0af5c7a00ea54c37d3e7788b61ad12f15175bc75f4a81860"
+      sha256 "045883d4a60b9dd4e1e682f70df732544cf272fa6913918b2f734e088bb776f7"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/ntm/releases/download/v#{version}/ntm_#{version}_linux_arm64.tar.gz"
-      sha256 "225fdeb9e1d8d0575e7a2d2e8d19cca87a792b3c7051e180d1cee0ce1d8b9161"
+      sha256 "874a72742ddc5aef876745dfb6ad322ab70c6427d5f94a265c15f6c5f3e24806"
     end
   end
 
-  caveats <<~EOS
-    To enable shell integration, add to your shell rc file:
-
-      eval "$(ntm init zsh)"   # for zsh
-      eval "$(ntm init bash)"  # for bash
-      eval "$(ntm init fish)"  # for fish
-
-    Run 'ntm tutorial' to get started!
-  EOS
+  caveats do
+    "To enable shell integration, add to your shell rc file:"
+    ""
+    "  eval "$(ntm init zsh)"   # for zsh"
+    "  eval "$(ntm init bash)"  # for bash"
+    "  eval "$(ntm init fish)"  # for fish"
+    ""
+    "Run 'ntm tutorial' to get started!"
+  end
 
   # No zap stanza required
 end
