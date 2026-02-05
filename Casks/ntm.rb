@@ -33,15 +33,15 @@ cask "ntm" do
     end
   end
 
-  caveats do
-    "To enable shell integration, add to your shell rc file:"
-    ""
-    "  eval "$(ntm init zsh)"   # for zsh"
-    "  eval "$(ntm init bash)"  # for bash"
-    "  eval "$(ntm init fish)"  # for fish"
-    ""
-    "Run 'ntm tutorial' to get started!"
-  end
+  caveats <<~EOS
+    To enable shell integration, add to your shell rc file:
+
+      eval "$(ntm init zsh)"   # for zsh
+      eval "$(ntm init bash)"  # for bash
+      eval "$(ntm init fish)"  # for fish
+
+    Run 'ntm tutorial' to get started!
+  EOS
 
   # No zap stanza required
 end
