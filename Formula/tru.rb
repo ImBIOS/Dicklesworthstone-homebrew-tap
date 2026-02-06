@@ -4,7 +4,7 @@
 class Tru < Formula
   desc "TOON encoder/decoder - Token-Optimized Object Notation"
   homepage "https://github.com/Dicklesworthstone/toon_rust"
-  version "0.1.1"
+  version "0.1.2"
   license "MIT"
 
   on_macos do
@@ -21,7 +21,7 @@ class Tru < Formula
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/toon_rust/releases/download/v#{version}/tru-linux-amd64.tar.xz"
-      sha256 "a155e50383ca8388d3e84615776a70deb7ef6415f775879253cbcba6548dd5c9"
+      sha256 "95ebf53061d86c0a0cb2e4ad1e4227ced8a05975a4de72d8398e49062163ad70"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/toon_rust/releases/download/v#{version}/tru-linux-arm64.tar.xz"
