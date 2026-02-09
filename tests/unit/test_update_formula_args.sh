@@ -1,95 +1,451 @@
 #!/usr/bin/env bash
-# Unit tests for update-formula.sh argument handling and version parsing
+# Unit tests for update-formula.sh
+# Tests argument validation, version parsing, formula updates, and error handling
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../scripts/test-helpers.sh"
+
+UPDATE_SCRIPT="$REPO_DIR/scripts/update-formula.sh"
+
+# Helper: create a mock environment with mocked externals
+setup_formula_env() {
+    mkdir -p "$_TEST_DIR/Formula"
+
+    # Create mock bin dir for overriding commands
+    mkdir -p "$_TEST_DIR/bin"
+
+    # Mock curl - returns a fixed hash by default
+    cat > "$_TEST_DIR/bin/curl" <<'MOCK'
+#!/usr/bin/env bash
+echo "deadbeef0123456789abcdef0123456789abcdef0123456789abcdef01234567  file.tar.xz"
+MOCK
+    chmod +x "$_TEST_DIR/bin/curl"
+
+    # Mock sha256sum
+    cat > "$_TEST_DIR/bin/sha256sum" <<'MOCK'
+#!/usr/bin/env bash
+echo "deadbeef0123456789abcdef0123456789abcdef0123456789abcdef01234567  -"
+MOCK
+    chmod +x "$_TEST_DIR/bin/sha256sum"
+
+    # Mock git (for git diff at end)
+    cat > "$_TEST_DIR/bin/git" <<'MOCK'
+#!/usr/bin/env bash
+exit 0
+MOCK
+    chmod +x "$_TEST_DIR/bin/git"
+}
+
+# Run update-formula.sh with mocked PATH
+run_update() {
+    (cd "$_TEST_DIR" && PATH="$_TEST_DIR/bin:$PATH" bash "$UPDATE_SCRIPT" "$@" 2>&1)
+}
 
 #==============================================================================
 # Tests: argument validation
 #==============================================================================
 
 test_missing_args_exits_nonzero() {
-    setup_test "missing args exits nonzero"
-
     local output exit_code=0
-    output=$(bash "$REPO_DIR/scripts/update-formula.sh" 2>&1) || exit_code=$?
+    output=$(bash "$UPDATE_SCRIPT" 2>&1) || exit_code=$?
 
     assert_not_equals "0" "$exit_code" "Should fail with no arguments"
     assert_contains "$output" "Usage" "Should show usage message"
 }
 
 test_missing_version_exits_nonzero() {
-    setup_test "missing version exits nonzero"
-
     local output exit_code=0
-    output=$(bash "$REPO_DIR/scripts/update-formula.sh" ru 2>&1) || exit_code=$?
+    output=$(bash "$UPDATE_SCRIPT" ru 2>&1) || exit_code=$?
 
     assert_not_equals "0" "$exit_code" "Should fail with no version"
     assert_contains "$output" "Usage" "Should show usage message"
 }
 
-test_unknown_tool_exits_nonzero() {
-    setup_test "unknown tool exits nonzero"
-
-    # Run from a temp dir so no formula file is found
-    local output exit_code=0
-    output=$(cd "$_TEST_DIR" && bash "$REPO_DIR/scripts/update-formula.sh" nonexistent 1.0.0 2>&1) || exit_code=$?
-
-    assert_not_equals "0" "$exit_code" "Should fail for unknown tool"
-}
-
 test_missing_formula_file_exits_nonzero() {
-    setup_test "missing formula file exits nonzero"
+    setup_formula_env
 
-    # Run from temp dir where Formula/ru.rb doesn't exist
     local output exit_code=0
-    output=$(cd "$_TEST_DIR" && bash "$REPO_DIR/scripts/update-formula.sh" ru 1.0.0 2>&1) || exit_code=$?
+    output=$(run_update ru 1.0.0) || exit_code=$?
 
     assert_not_equals "0" "$exit_code" "Should fail when formula file missing"
     assert_contains "$output" "not found" "Should mention file not found"
 }
 
-test_version_strip_v_prefix() {
-    setup_test "version strips v prefix"
+test_unknown_tool_in_case() {
+    setup_formula_env
+    # Create a formula file for an unsupported tool
+    echo 'class Foo < Formula; end' > "$_TEST_DIR/Formula/foo.rb"
 
-    # Create a minimal formula that the script will try to process
-    mkdir -p "$_TEST_DIR/Formula"
+    local output exit_code=0
+    output=$(run_update foo 1.0.0) || exit_code=$?
+
+    assert_not_equals "0" "$exit_code" "Should fail for unknown tool"
+    assert_contains "$output" "Unknown tool" "Should mention unknown tool"
+}
+
+#==============================================================================
+# Tests: version handling
+#==============================================================================
+
+test_version_strip_v_prefix() {
+    setup_formula_env
     cat > "$_TEST_DIR/Formula/ru.rb" <<'FORMULA'
 class Ru < Formula
   version "0.0.1"
-  sha256 "abc123"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
 end
 FORMULA
 
-    # Mock curl to return a fake checksum
-    curl() {
-        echo "deadbeef01234567890abcdef01234567890abcdef01234567890abcdef0123456  -"
-    }
-    export -f curl
+    local output exit_code=0
+    output=$(run_update ru v2.0.0) || exit_code=$?
 
-    # Mock sha256sum
-    sha256sum() {
-        echo "deadbeef01234567890abcdef01234567890abcdef01234567890abcdef0123456  -"
-    }
-    export -f sha256sum
+    assert_equals "0" "$exit_code" "Should succeed"
+    assert_file_contains "$_TEST_DIR/Formula/ru.rb" 'version "2.0.0"' "Version should be 2.0.0 (no v prefix)"
+}
 
-    # Mock git diff
-    git() { return 0; }
-    export -f git
+test_version_without_prefix_works() {
+    setup_formula_env
+    cat > "$_TEST_DIR/Formula/ru.rb" <<'FORMULA'
+class Ru < Formula
+  version "1.0.0"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+end
+FORMULA
 
     local output exit_code=0
-    output=$(cd "$_TEST_DIR" && bash "$REPO_DIR/scripts/update-formula.sh" ru v2.0.0 2>&1) || exit_code=$?
+    output=$(run_update ru 3.5.1) || exit_code=$?
 
-    # Check the formula was updated with version without 'v' prefix
-    if [[ -f "$_TEST_DIR/Formula/ru.rb" ]]; then
-        assert_file_contains "$_TEST_DIR/Formula/ru.rb" 'version "2.0.0"' "Version should be 2.0.0 (no v prefix)"
-    else
-        fail "Formula file should still exist after update"
+    assert_equals "0" "$exit_code" "Should succeed without v prefix"
+    assert_file_contains "$_TEST_DIR/Formula/ru.rb" 'version "3.5.1"' "Version should be updated"
+}
+
+#==============================================================================
+# Tests: ru (simple script) formula update
+#==============================================================================
+
+test_ru_updates_version_and_checksum() {
+    setup_formula_env
+    cat > "$_TEST_DIR/Formula/ru.rb" <<'FORMULA'
+class Ru < Formula
+  desc "Repo Updater"
+  version "1.0.0"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  license "MIT"
+end
+FORMULA
+
+    local exit_code=0
+    run_update ru 2.0.0 > /dev/null || exit_code=$?
+
+    assert_equals "0" "$exit_code" "ru update should succeed"
+    assert_file_contains "$_TEST_DIR/Formula/ru.rb" 'version "2.0.0"' "Version updated"
+    assert_file_contains "$_TEST_DIR/Formula/ru.rb" 'sha256 "deadbeef' "Checksum updated"
+}
+
+test_ru_preserves_other_fields() {
+    setup_formula_env
+    cat > "$_TEST_DIR/Formula/ru.rb" <<'FORMULA'
+class Ru < Formula
+  desc "Repo Updater"
+  homepage "https://github.com/Dicklesworthstone/repo_updater"
+  version "1.0.0"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  license "MIT"
+  depends_on "git"
+end
+FORMULA
+
+    run_update ru 2.0.0 > /dev/null
+
+    assert_file_contains "$_TEST_DIR/Formula/ru.rb" 'desc "Repo Updater"' "desc preserved"
+    assert_file_contains "$_TEST_DIR/Formula/ru.rb" 'homepage' "homepage preserved"
+    assert_file_contains "$_TEST_DIR/Formula/ru.rb" 'license "MIT"' "license preserved"
+    assert_file_contains "$_TEST_DIR/Formula/ru.rb" 'depends_on "git"' "depends_on preserved"
+}
+
+test_ru_cleans_up_backup() {
+    setup_formula_env
+    cat > "$_TEST_DIR/Formula/ru.rb" <<'FORMULA'
+class Ru < Formula
+  version "1.0.0"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+end
+FORMULA
+
+    run_update ru 2.0.0 > /dev/null
+
+    assert_file_not_exists "$_TEST_DIR/Formula/ru.rb.bak" "Backup file should be cleaned up"
+}
+
+#==============================================================================
+# Tests: ubs (raw github script)
+#==============================================================================
+
+test_ubs_updates_version_and_checksum() {
+    setup_formula_env
+    cat > "$_TEST_DIR/Formula/ubs.rb" <<'FORMULA'
+class Ubs < Formula
+  desc "Ultimate Bug Scanner"
+  version "1.0.0"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  license "MIT"
+end
+FORMULA
+
+    local exit_code=0
+    run_update ubs 2.5.0 > /dev/null || exit_code=$?
+
+    assert_equals "0" "$exit_code" "ubs update should succeed"
+    assert_file_contains "$_TEST_DIR/Formula/ubs.rb" 'version "2.5.0"' "Version updated"
+    assert_file_contains "$_TEST_DIR/Formula/ubs.rb" 'sha256 "deadbeef' "Checksum updated"
+}
+
+#==============================================================================
+# Tests: cass (multi-arch) formula update
+#==============================================================================
+
+test_cass_fetches_four_checksums() {
+    setup_formula_env
+
+    # Mock curl to return different checksums based on URL
+    cat > "$_TEST_DIR/bin/curl" <<'MOCK'
+#!/usr/bin/env bash
+url=""
+for arg in "$@"; do
+    [[ "$arg" != -* ]] && url="$arg"
+done
+case "$url" in
+    *aarch64-apple-darwin*)  echo "aaaa0000000000000000000000000000000000000000000000000000aaaa0000  file" ;;
+    *x86_64-apple-darwin*)   echo "bbbb0000000000000000000000000000000000000000000000000000bbbb0000  file" ;;
+    *aarch64-unknown-linux*) echo "cccc0000000000000000000000000000000000000000000000000000cccc0000  file" ;;
+    *x86_64-unknown-linux*)  echo "dddd0000000000000000000000000000000000000000000000000000dddd0000  file" ;;
+    *) echo "0000000000000000000000000000000000000000000000000000000000000000  file" ;;
+esac
+MOCK
+    chmod +x "$_TEST_DIR/bin/curl"
+
+    # Create multi-arch formula
+    cat > "$_TEST_DIR/Formula/cass.rb" <<'FORMULA'
+class Cass < Formula
+  desc "Coding Agent Session Search"
+  version "0.1.50"
+  license "MIT"
+
+  on_macos do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/coding-agent-search-x86_64-apple-darwin.tar.xz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+    on_arm do
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/coding-agent-search-aarch64-apple-darwin.tar.xz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+  end
+  on_linux do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/coding-agent-search-x86_64-unknown-linux-gnu.tar.xz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+    on_arm do
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/coding-agent-search-aarch64-unknown-linux-gnu.tar.xz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+  end
+end
+FORMULA
+
+    # Check if ruby is available for this test
+    if ! command -v ruby &>/dev/null; then
+        echo "SKIP: ruby not available"
+        return 0
     fi
 
-    # Clean up exported functions
-    unset -f curl sha256sum git
+    local exit_code=0
+    run_update cass 0.1.55 > /dev/null || exit_code=$?
+
+    assert_equals "0" "$exit_code" "cass update should succeed"
+    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'version "0.1.55"' "Version updated"
+    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "bbbb' "macOS Intel checksum updated"
+    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "aaaa' "macOS ARM checksum updated"
+    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "dddd' "Linux Intel checksum updated"
+    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "cccc' "Linux ARM checksum updated"
+}
+
+#==============================================================================
+# Tests: xf (multi-arch with SHA256SUMS file)
+#==============================================================================
+
+test_xf_parses_sha256sums_file() {
+    setup_formula_env
+
+    # Mock curl to return SHA256SUMS file
+    cat > "$_TEST_DIR/bin/curl" <<'MOCK'
+#!/usr/bin/env bash
+cat <<'SUMS'
+aaaa0000000000000000000000000000000000000000000000000000aaaa0000  xf-aarch64-apple-darwin.tar.xz
+bbbb0000000000000000000000000000000000000000000000000000bbbb0000  xf-x86_64-apple-darwin.tar.xz
+dddd0000000000000000000000000000000000000000000000000000dddd0000  xf-x86_64-unknown-linux-gnu.tar.xz
+SUMS
+MOCK
+    chmod +x "$_TEST_DIR/bin/curl"
+
+    # Create xf formula
+    cat > "$_TEST_DIR/Formula/xf.rb" <<'FORMULA'
+class Xf < Formula
+  desc "X-Former"
+  version "0.1.0"
+  license "MIT"
+
+  on_macos do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/xf/releases/download/v0.1.0/xf-x86_64-apple-darwin.tar.xz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+    on_arm do
+      url "https://github.com/Dicklesworthstone/xf/releases/download/v0.1.0/xf-aarch64-apple-darwin.tar.xz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+  end
+  on_linux do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/xf/releases/download/v0.1.0/xf-x86_64-unknown-linux-gnu.tar.xz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+  end
+end
+FORMULA
+
+    if ! command -v ruby &>/dev/null; then
+        echo "SKIP: ruby not available"
+        return 0
+    fi
+
+    local exit_code=0
+    run_update xf 0.2.0 > /dev/null || exit_code=$?
+
+    assert_equals "0" "$exit_code" "xf update should succeed"
+    assert_file_contains "$_TEST_DIR/Formula/xf.rb" 'version "0.2.0"' "Version updated"
+    assert_file_contains "$_TEST_DIR/Formula/xf.rb" 'sha256 "bbbb' "macOS Intel from SHA256SUMS"
+    assert_file_contains "$_TEST_DIR/Formula/xf.rb" 'sha256 "aaaa' "macOS ARM from SHA256SUMS"
+    assert_file_contains "$_TEST_DIR/Formula/xf.rb" 'sha256 "dddd' "Linux Intel from SHA256SUMS"
+}
+
+#==============================================================================
+# Tests: cm (multi-arch with individual checksum files)
+#==============================================================================
+
+test_cm_updates_three_architectures() {
+    setup_formula_env
+
+    # Mock curl to return different checksums by URL
+    cat > "$_TEST_DIR/bin/curl" <<'MOCK'
+#!/usr/bin/env bash
+url=""
+for arg in "$@"; do
+    [[ "$arg" != -* ]] && url="$arg"
+done
+case "$url" in
+    *macos-arm64*) echo "aaaa0000000000000000000000000000000000000000000000000000aaaa0000  file" ;;
+    *macos-x64*)   echo "bbbb0000000000000000000000000000000000000000000000000000bbbb0000  file" ;;
+    *linux-x64*)   echo "dddd0000000000000000000000000000000000000000000000000000dddd0000  file" ;;
+    *) echo "0000000000000000000000000000000000000000000000000000000000000000  file" ;;
+esac
+MOCK
+    chmod +x "$_TEST_DIR/bin/curl"
+
+    cat > "$_TEST_DIR/Formula/cm.rb" <<'FORMULA'
+class Cm < Formula
+  desc "CASS Memory System"
+  version "0.2.0"
+  license "MIT"
+
+  on_macos do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/cass_memory_system/releases/download/v0.2.0/cass-memory-macos-x64"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+    on_arm do
+      url "https://github.com/Dicklesworthstone/cass_memory_system/releases/download/v0.2.0/cass-memory-macos-arm64"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+  end
+  on_linux do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/cass_memory_system/releases/download/v0.2.0/cass-memory-linux-x64"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+  end
+end
+FORMULA
+
+    if ! command -v ruby &>/dev/null; then
+        echo "SKIP: ruby not available"
+        return 0
+    fi
+
+    local exit_code=0
+    run_update cm 0.3.0 > /dev/null || exit_code=$?
+
+    assert_equals "0" "$exit_code" "cm update should succeed"
+    assert_file_contains "$_TEST_DIR/Formula/cm.rb" 'version "0.3.0"' "Version updated"
+    assert_file_contains "$_TEST_DIR/Formula/cm.rb" 'sha256 "bbbb' "macOS Intel checksum updated"
+    assert_file_contains "$_TEST_DIR/Formula/cm.rb" 'sha256 "aaaa' "macOS ARM checksum updated"
+    assert_file_contains "$_TEST_DIR/Formula/cm.rb" 'sha256 "dddd' "Linux Intel checksum updated"
+}
+
+#==============================================================================
+# Tests: idempotency
+#==============================================================================
+
+test_idempotent_ru_update() {
+    setup_formula_env
+    cat > "$_TEST_DIR/Formula/ru.rb" <<'FORMULA'
+class Ru < Formula
+  version "1.0.0"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+end
+FORMULA
+
+    run_update ru 2.0.0 > /dev/null
+    local hash1
+    hash1=$(sha256sum "$_TEST_DIR/Formula/ru.rb" | cut -d' ' -f1)
+
+    run_update ru 2.0.0 > /dev/null
+    local hash2
+    hash2=$(sha256sum "$_TEST_DIR/Formula/ru.rb" | cut -d' ' -f1)
+
+    assert_equals "$hash1" "$hash2" "Same update should be idempotent"
+}
+
+#==============================================================================
+# Tests: output messages
+#==============================================================================
+
+test_shows_updating_message() {
+    setup_formula_env
+    cat > "$_TEST_DIR/Formula/ru.rb" <<'FORMULA'
+class Ru < Formula
+  version "1.0.0"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+end
+FORMULA
+
+    local output
+    output=$(run_update ru 2.0.0)
+
+    assert_contains "$output" "Updating ru to version 2.0.0" "Should show updating message"
+    assert_contains "$output" "Formula updated" "Should confirm update"
+}
+
+test_supported_tools_in_error_message() {
+    setup_formula_env
+    echo 'class Foo < Formula; end' > "$_TEST_DIR/Formula/foo.rb"
+
+    local output exit_code=0
+    output=$(run_update foo 1.0.0) || exit_code=$?
+
+    assert_contains "$output" "Supported tools" "Should list supported tools"
 }
 
 #==============================================================================
@@ -98,8 +454,19 @@ FORMULA
 
 run_test test_missing_args_exits_nonzero
 run_test test_missing_version_exits_nonzero
-run_test test_unknown_tool_exits_nonzero
 run_test test_missing_formula_file_exits_nonzero
+run_test test_unknown_tool_in_case
 run_test test_version_strip_v_prefix
+run_test test_version_without_prefix_works
+run_test test_ru_updates_version_and_checksum
+run_test test_ru_preserves_other_fields
+run_test test_ru_cleans_up_backup
+run_test test_ubs_updates_version_and_checksum
+run_test test_cass_fetches_four_checksums
+run_test test_xf_parses_sha256sums_file
+run_test test_cm_updates_three_architectures
+run_test test_idempotent_ru_update
+run_test test_shows_updating_message
+run_test test_supported_tools_in_error_message
 
 print_results
