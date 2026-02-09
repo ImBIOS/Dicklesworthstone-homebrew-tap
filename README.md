@@ -25,6 +25,14 @@ brew install dicklesworthstone/tap/cass
 | **[cm](https://github.com/Dicklesworthstone/cass_memory_system)** | CASS Memory System - Persistent vector-based procedural memory for AI agents | `brew install dicklesworthstone/tap/cm` |
 | **[xf](https://github.com/Dicklesworthstone/xf)** | X-Former - Search and analyze your Twitter/X archive data locally | `brew install dicklesworthstone/tap/xf` |
 
+### Task Management & Agent Orchestration
+
+| Tool | Description | Install |
+|------|-------------|---------|
+| **[bv](https://github.com/Dicklesworthstone/beads_viewer)** | Beads Viewer - Graph-aware task management TUI | `brew install dicklesworthstone/tap/bv` |
+| **[caam](https://github.com/Dicklesworthstone/coding_agent_account_manager)** | Coding Agent Account Manager - Switch between AI agent accounts | `brew install dicklesworthstone/tap/caam` |
+| **[slb](https://github.com/Dicklesworthstone/simultaneous_launch_button)** | Simultaneous Launch Button - Two-person rule for dangerous commands | `brew install dicklesworthstone/tap/slb` |
+
 ### Repository & Code Management
 
 | Tool | Description | Install |
@@ -32,16 +40,12 @@ brew install dicklesworthstone/tap/cass
 | **[ru](https://github.com/Dicklesworthstone/repo_updater)** | Repo Updater - Robust CLI for synchronizing GitHub repositories to local projects directory | `brew install dicklesworthstone/tap/ru` |
 | **[ubs](https://github.com/Dicklesworthstone/ultimate_bug_scanner)** | Ultimate Bug Scanner - Comprehensive code analysis for bugs and security issues | `brew install dicklesworthstone/tap/ubs` |
 
-### Coming Soon (via GoReleaser)
+### Safety & Encoding
 
-These tools will be automatically published when their GoReleaser configurations are set up:
-
-| Tool | Description | Status |
-|------|-------------|--------|
-| **[ntm](https://github.com/Dicklesworthstone/ntm)** | Named Tmux Manager - Orchestrate AI coding agents in tmux sessions | Pending |
-| **[bv](https://github.com/Dicklesworthstone/beads_viewer)** | Beads Viewer - Graph-aware task management TUI | Pending |
-| **[caam](https://github.com/Dicklesworthstone/coding_agent_account_manager)** | Coding Agent Account Manager - Switch between AI agent accounts | Pending |
-| **[slb](https://github.com/Dicklesworthstone/simultaneous_launch_button)** | Simultaneous Launch Button - Two-person rule for dangerous commands | Pending |
+| Tool | Description | Install |
+|------|-------------|---------|
+| **[dcg](https://github.com/Dicklesworthstone/destructive_command_guard)** | Destructive Command Guard - Safety rails for AI coding agents | `brew install dicklesworthstone/tap/dcg` |
+| **[tru](https://github.com/Dicklesworthstone/toon_rust)** | TOON encoder/decoder - Token-Optimized Object Notation | `brew install dicklesworthstone/tap/tru` |
 
 ## Platform Support
 
@@ -52,8 +56,13 @@ These tools will be automatically published when their GoReleaser configurations
 | cm   | ✅ | ✅ | ✅ | - |
 | ru   | ✅ | ✅ | ✅ | ✅ |
 | ubs  | ✅ | ✅ | ✅ | ✅ |
+| bv   | ✅ | ✅ | ✅ | ✅ |
+| caam | ✅ | ✅ | ✅ | ✅ |
+| slb  | ✅ | ✅ | ✅ | ✅ |
+| dcg  | - | ✅ | ✅ | - |
+| tru  | ✅ | ✅ | ✅ | ✅ |
 
-> **Note**: ru and ubs are Bash scripts that work on any Unix-like system.
+> **Note**: ru and ubs are Bash scripts that work on any Unix-like system. bv, caam, and slb are managed by GoReleaser. dcg v0.3.0 currently only has macOS ARM and Linux x86 builds.
 
 ## Tool Details
 
@@ -364,7 +373,7 @@ end
 
 ### Release Checklists by Tool Type
 
-#### GoReleaser Tools (bv, caam, slb)
+#### GoReleaser Tools (bv, caam, slb, ntm)
 
 These tools use GoReleaser which automatically handles the entire release process including Homebrew/Scoop updates.
 
@@ -388,7 +397,7 @@ brew update && brew info dicklesworthstone/tap/<tool>
 - Updates homebrew-tap formula via `goreleaser-action`
 - Updates scoop-bucket manifest via `goreleaser-action`
 
-#### Rust Tools (cass, xf)
+#### Rust Tools (cass, xf, dcg, tru)
 
 ```bash
 # 1. Update version in Cargo.toml
@@ -488,6 +497,8 @@ Each source repository needs these secrets configured:
 | `xf` | `HOMEBREW_TAP_TOKEN`, `SCOOP_BUCKET_TOKEN` |
 | `cass_memory_system` (cm) | `HOMEBREW_TAP_TOKEN`, `SCOOP_BUCKET_TOKEN` |
 | `ultimate_bug_scanner` (ubs) | `HOMEBREW_TAP_TOKEN` |
+| `destructive_command_guard` (dcg) | `HOMEBREW_TAP_TOKEN`, `SCOOP_BUCKET_TOKEN` |
+| `toon_rust` (tru) | `HOMEBREW_TAP_TOKEN`, `SCOOP_BUCKET_TOKEN` |
 
 #### Creating the PAT
 
@@ -519,9 +530,14 @@ Weekly E2E tests run comprehensive functional tests on all installed tools.
 ```
 homebrew-tap/
 ├── Formula/           # Homebrew formulas (.rb files)
+│   ├── bv.rb          # GoReleaser-managed
+│   ├── caam.rb        # GoReleaser-managed
 │   ├── cass.rb
 │   ├── cm.rb
+│   ├── dcg.rb
 │   ├── ru.rb
+│   ├── slb.rb         # GoReleaser-managed
+│   ├── tru.rb
 │   ├── ubs.rb
 │   └── xf.rb
 ├── Casks/             # Homebrew casks (GUI apps)
