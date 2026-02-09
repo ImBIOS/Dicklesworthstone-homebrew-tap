@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       tool:
-        description: "Tool to update (ru, cass, xf, cm, ubs)"
+        description: "Tool to update (ru, cass, xf, cm, ubs, dcg, tru)"
         required: true
         type: choice
         options:
@@ -18,6 +18,8 @@ on:
           - xf
           - cm
           - ubs
+          - dcg
+          - tru
       version:
         description: "Version to update to (e.g., 1.2.3)"
         required: true
@@ -94,6 +96,10 @@ jobs:
             repo: Dicklesworthstone/cass_memory_system
           - tool: ubs
             repo: Dicklesworthstone/ultimate_bug_scanner
+          - tool: dcg
+            repo: Dicklesworthstone/destructive_command_guard
+          - tool: tru
+            repo: Dicklesworthstone/toon_rust
     steps:
       - uses: actions/checkout@v4
         with:

@@ -160,9 +160,71 @@ case "$TOOL" in
     sed -i.bak "s/sha256 \"[a-f0-9]*\"/sha256 \"${CHECKSUM}\"/" "$FORMULA_FILE"
     ;;
 
+  dcg)
+    # dcg is a Rust binary with per-platform .sha256 files
+    echo "Fetching checksums for dcg..."
+
+    MACOS_ARM=$(curl -sL "https://github.com/Dicklesworthstone/destructive_command_guard/releases/download/v${VERSION}/dcg-aarch64-apple-darwin.tar.xz.sha256" | cut -d' ' -f1)
+    LINUX_INTEL=$(curl -sL "https://github.com/Dicklesworthstone/destructive_command_guard/releases/download/v${VERSION}/dcg-x86_64-unknown-linux-gnu.tar.xz.sha256" | cut -d' ' -f1)
+
+    echo "  macOS ARM: $MACOS_ARM"
+    echo "  Linux Intel: $LINUX_INTEL"
+
+    # Update version
+    sed -i.bak "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_FILE"
+
+    # Update checksums using Ruby-aware replacement
+    ruby -i.bak -e '
+      content = File.read(ARGV[0])
+      content.gsub!(/url[^\n]+aarch64-apple-darwin[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_ARM"'\"")
+      }
+      content.gsub!(/url[^\n]+x86_64-unknown-linux-gnu[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$LINUX_INTEL"'\"")
+      }
+      File.write(ARGV[0], content)
+    ' "$FORMULA_FILE"
+    ;;
+
+  tru)
+    # tru (toon_rust) has multi-arch binaries with per-platform .sha256 files
+    echo "Fetching checksums for tru..."
+
+    MACOS_INTEL=$(curl -sL "https://github.com/Dicklesworthstone/toon_rust/releases/download/v${VERSION}/toon-darwin-amd64.tar.xz.sha256" | cut -d' ' -f1)
+    MACOS_ARM=$(curl -sL "https://github.com/Dicklesworthstone/toon_rust/releases/download/v${VERSION}/toon-darwin-arm64.tar.xz.sha256" | cut -d' ' -f1)
+    LINUX_INTEL=$(curl -sL "https://github.com/Dicklesworthstone/toon_rust/releases/download/v${VERSION}/toon-linux-amd64.tar.xz.sha256" | cut -d' ' -f1)
+    LINUX_ARM=$(curl -sL "https://github.com/Dicklesworthstone/toon_rust/releases/download/v${VERSION}/toon-linux-arm64.tar.xz.sha256" | cut -d' ' -f1)
+
+    echo "  macOS Intel: $MACOS_INTEL"
+    echo "  macOS ARM: $MACOS_ARM"
+    echo "  Linux Intel: $LINUX_INTEL"
+    echo "  Linux ARM: $LINUX_ARM"
+
+    # Update version
+    sed -i.bak "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_FILE"
+
+    # Update checksums using Ruby-aware replacement
+    ruby -i.bak -e '
+      content = File.read(ARGV[0])
+      content.gsub!(/url[^\n]+darwin-amd64[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_INTEL"'\"")
+      }
+      content.gsub!(/url[^\n]+darwin-arm64[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_ARM"'\"")
+      }
+      content.gsub!(/url[^\n]+linux-amd64[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$LINUX_INTEL"'\"")
+      }
+      content.gsub!(/url[^\n]+linux-arm64[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
+        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$LINUX_ARM"'\"")
+      }
+      File.write(ARGV[0], content)
+    ' "$FORMULA_FILE"
+    ;;
+
   *)
     echo "Error: Unknown tool: $TOOL"
-    echo "Supported tools: ru, cass, xf, cm, ubs"
+    echo "Supported tools: ru, cass, xf, cm, ubs, dcg, tru"
     exit 1
     ;;
 esac
