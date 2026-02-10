@@ -71,7 +71,7 @@ test_ci_workflow_has_platform_matrix() {
 test_scoop_manifests_have_windows_urls() {
     setup_test "scoop_manifests_have_windows_urls"
 
-    local scoop_dir="$REPO_DIR/../../scoop-bucket"
+    local scoop_dir="$REPO_DIR/../scoop-bucket"
     if [[ ! -d "$scoop_dir" ]]; then
         log_test "INFO" "scoop-bucket not found alongside homebrew-tap"
         _TEST_SKIPPED=$((_TEST_SKIPPED + 1))

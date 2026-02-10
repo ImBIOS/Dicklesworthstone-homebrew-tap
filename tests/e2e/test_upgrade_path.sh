@@ -88,7 +88,7 @@ test_no_version_pinning_in_deps() {
 test_autoupdate_config_in_scoop() {
     setup_test "autoupdate_config_in_scoop"
 
-    local scoop_dir="$REPO_DIR/../../scoop-bucket"
+    local scoop_dir="$REPO_DIR/../scoop-bucket"
     if [[ ! -d "$scoop_dir" ]]; then
         log_test "INFO" "scoop-bucket not found"
         _TEST_SKIPPED=$((_TEST_SKIPPED + 1))
