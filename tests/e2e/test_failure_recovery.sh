@@ -87,7 +87,7 @@ test_no_partial_formula_state() {
         name=$(basename "$f" .rb)
 
         # Check for placeholder checksums that indicate failed updates
-        if grep -qE 'sha256\s+"(PLACEHOLDER|TODO|FIXME|xxx|000)"' "$f" 2>/dev/null; then
+        if grep -qE 'sha256[[:space:]]+"(PLACEHOLDER|TODO|FIXME|xxx|000)"' "$f" 2>/dev/null; then
             fail "Formula $name has placeholder checksum (partial update?)"
         else
             pass "Formula $name has no placeholder checksum"

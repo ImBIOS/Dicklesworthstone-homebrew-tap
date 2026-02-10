@@ -52,7 +52,7 @@ test_formulas_have_stable_binary_names() {
         # Check for bin.install directives
         if grep -q 'bin\.install' "$f" 2>/dev/null; then
             local bin_name
-            bin_name=$(sed -n 's/.*bin\.install\s*"\{0,1\}\([^"=> ]*\).*/\1/p' "$f" 2>/dev/null | head -1)
+            bin_name=$(sed -n 's/.*bin\.install[[:space:]]*"\{0,1\}\([^"=> ]*\).*/\1/p' "$f" 2>/dev/null | head -1)
             if [[ -n "$bin_name" ]]; then
                 pass "Formula $name installs binary: $bin_name"
             fi
