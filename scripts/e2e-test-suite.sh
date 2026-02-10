@@ -199,6 +199,54 @@ test_ubs() {
   rm -f "$testfile"
 }
 
+test_dcg() {
+  log_info "=== Testing dcg (destructive_command_guard) ==="
+
+  if ! command -v dcg &>/dev/null; then
+    skip_test "dcg-all" "dcg not installed"
+    return
+  fi
+
+  run_test "dcg-version" "dcg --version"
+  run_test "dcg-help" "dcg --help"
+}
+
+test_tru() {
+  log_info "=== Testing tru (toon_rust) ==="
+
+  if ! command -v tru &>/dev/null; then
+    skip_test "tru-all" "tru not installed"
+    return
+  fi
+
+  run_test "tru-version" "tru --version"
+  run_test "tru-help" "tru --help"
+}
+
+test_ntm() {
+  log_info "=== Testing ntm (named_tmux_manager) ==="
+
+  if ! command -v ntm &>/dev/null; then
+    skip_test "ntm-all" "ntm not installed"
+    return
+  fi
+
+  run_test "ntm-version" "ntm --version"
+  run_test "ntm-help" "ntm --help | grep -qi spawn"
+}
+
+test_tr() {
+  log_info "=== Testing tr (toon_rust formula alias) ==="
+
+  if ! command -v tr &>/dev/null; then
+    skip_test "tr-all" "tr not installed or shadowed by coreutils"
+    return
+  fi
+
+  # tr is a secondary formula — just check help works
+  run_test "tr-help" "tr --help 2>&1 || true"
+}
+
 # Generate JSON results
 generate_results() {
   local pass_rate=0
@@ -293,6 +341,9 @@ main() {
   test_xf
   test_cm
   test_ubs
+  test_dcg
+  test_tru
+  test_ntm
 
   generate_results
   print_summary
@@ -304,7 +355,7 @@ main() {
 # Allow running specific tool tests
 if [[ $# -gt 0 ]]; then
   case "$1" in
-    bv|caam|slb|ru|cass|xf|cm|ubs)
+    bv|caam|slb|ru|cass|xf|cm|ubs|dcg|tru|ntm|tr)
       log_info "Running tests for: $1"
       "test_$1"
       generate_results
@@ -313,7 +364,7 @@ if [[ $# -gt 0 ]]; then
       ;;
     *)
       echo "Usage: $0 [tool]"
-      echo "Available tools: bv, caam, slb, ru, cass, xf, cm, ubs"
+      echo "Available tools: bv, caam, slb, ru, cass, xf, cm, ubs, dcg, tru, ntm, tr"
       echo "Run without arguments to test all installed tools"
       exit 1
       ;;

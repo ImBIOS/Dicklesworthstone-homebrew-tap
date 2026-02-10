@@ -274,7 +274,6 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
         echo "| Tool | Result |"
         echo "|------|--------|"
         for entry in "${RESULTS_ARRAY[@]}"; do
-            local t r
             t=$(echo "$entry" | grep -oP '"tool":"\K[^"]+')
             r=$(echo "$entry" | grep -oP '"result":"\K[^"]+')
             if [[ "$r" == "pass" ]]; then
