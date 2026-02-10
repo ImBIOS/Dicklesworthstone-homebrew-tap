@@ -198,7 +198,9 @@ verify_tool() {
         # Phase 6: Clean check
         phases_total=$((phases_total + 1))
         log "INFO" "Verifying clean removal" "tool" "$tool" "phase" "cleanup_check"
-        if command -v "$tool" &>/dev/null; then
+        local brew_bin
+        brew_bin="$(brew --prefix 2>/dev/null)/bin/$tool"
+        if [[ -x "$brew_bin" ]]; then
             log "ERROR" "Tool still in PATH after uninstall" "tool" "$tool" "phase" "cleanup_check"
             FAILED=$((FAILED + 1))
             RESULTS_ARRAY+=("{\"tool\":\"$tool\",\"result\":\"fail\",\"phase\":\"cleanup_check\"}")

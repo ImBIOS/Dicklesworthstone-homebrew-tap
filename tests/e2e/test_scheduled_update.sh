@@ -55,7 +55,7 @@ test_scheduled_update_has_retry_logic() {
     local workflow="$REPO_DIR/.github/workflows/auto-update.yml"
 
     # Check for push retry (handles concurrent updates)
-    if grep -q "retry\|rebase\|attempt" "$workflow" 2>/dev/null; then
+    if grep -qE "retry|rebase|attempt" "$workflow" 2>/dev/null; then
         pass "Workflow has retry/rebase logic for concurrent updates"
     else
         fail "Workflow should have retry logic for concurrent pushes"

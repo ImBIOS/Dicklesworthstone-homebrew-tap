@@ -72,7 +72,7 @@ test_update_formula_is_atomic() {
 
     # Check that script updates one formula at a time (not batch)
     # The script should take a tool name parameter
-    if grep -q 'TOOL\|tool\|FORMULA' "$script" 2>/dev/null; then
+    if grep -qE 'TOOL|tool|FORMULA' "$script" 2>/dev/null; then
         pass "Script operates on individual formulas"
     else
         log_test "WARN" "Cannot verify script operates on individual tools"
