@@ -85,7 +85,7 @@ When a tool has a critical vulnerability and must be taken offline immediately:
 ```ruby
 # In Formula/<tool>.rb, add this line after the class declaration:
 class Tool < Formula
-  disable! date: "2026-02-09", because: "Critical issue, see https://github.com/..."
+  disable! date: "<YYYY-MM-DD>", because: "Critical issue, see https://github.com/..."
   # ... rest of formula unchanged
 end
 ```
