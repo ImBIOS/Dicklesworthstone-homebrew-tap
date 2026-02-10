@@ -80,7 +80,7 @@ test_formula_version_matches_github_api() {
     fi
 
     local formula_version
-    formula_version=$(grep -oP 'version\s+"?\K[0-9]+\.[0-9]+\.[0-9]+' "$formula" 2>/dev/null | head -1)
+    formula_version=$(sed -n 's/.*version\s*"\{0,1\}\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' "$formula" 2>/dev/null | head -1)
 
     local latest_version
     latest_version=$(gh api repos/Dicklesworthstone/repo_updater/releases/latest --jq '.tag_name' 2>/dev/null | sed 's/^v//') || true

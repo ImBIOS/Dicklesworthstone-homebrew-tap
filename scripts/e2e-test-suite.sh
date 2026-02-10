@@ -238,13 +238,19 @@ test_ntm() {
 test_tr() {
   log_info "=== Testing tr (toon_rust formula alias) ==="
 
-  if ! command -v tr &>/dev/null; then
-    skip_test "tr-all" "tr not installed or shadowed by coreutils"
-    return
+  # command -v tr always finds coreutils /usr/bin/tr, so check Homebrew prefix
+  local brew_tr=""
+  if command -v brew &>/dev/null; then
+    brew_tr="$(brew --prefix 2>/dev/null)/bin/tr"
   fi
 
-  # tr is a secondary formula — just check help works
-  run_test "tr-help" "tr --help 2>&1 || true"
+  if [[ -n "$brew_tr" && -x "$brew_tr" ]]; then
+    # Homebrew-installed tr exists — test it
+    run_test "tr-help" "$brew_tr --help 2>&1 || true"
+  else
+    skip_test "tr-all" "tr formula not installed via Homebrew"
+    return
+  fi
 }
 
 # Generate JSON results

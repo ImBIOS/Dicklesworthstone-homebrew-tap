@@ -65,7 +65,7 @@ test_formula_version_extraction() {
         local name
         name=$(basename "$f" .rb)
         local version
-        version=$(grep -oP 'version\s+"?\K[0-9]+\.[0-9]+\.[0-9]+' "$f" 2>/dev/null || echo "")
+        version=$(sed -n 's/.*version\s*"\{0,1\}\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/p' "$f" 2>/dev/null | head -1)
 
         if [[ -n "$version" ]]; then
             pass "Formula $name has version: $version"

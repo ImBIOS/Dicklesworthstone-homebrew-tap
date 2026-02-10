@@ -53,8 +53,10 @@ run_test_file() {
 
     # Extract counts from output
     local passed failed
-    passed=$(echo "$output" | grep "^Tests:" | grep -oP '\d+ passed' | grep -oP '\d+' || echo 0)
-    failed=$(echo "$output" | grep "^Tests:" | grep -oP '\d+ failed' | grep -oP '\d+' || echo 0)
+    passed=$(echo "$output" | grep "^Tests:" | sed -n 's/.*\([0-9][0-9]*\) passed.*/\1/p' | head -1)
+    passed="${passed:-0}"
+    failed=$(echo "$output" | grep "^Tests:" | sed -n 's/.*\([0-9][0-9]*\) failed.*/\1/p' | head -1)
+    failed="${failed:-0}"
 
     total_passed=$((total_passed + passed))
     total_failed=$((total_failed + failed))

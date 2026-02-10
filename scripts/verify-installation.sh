@@ -154,6 +154,7 @@ verify_tool() {
 
     if [[ $version_exit -ne 0 ]]; then
         # Some tools use different version flags; try alternatives
+        version_exit=0
         version_output=$("$tool" version 2>&1) || version_exit=$?
     fi
 
@@ -274,8 +275,8 @@ if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
         echo "| Tool | Result |"
         echo "|------|--------|"
         for entry in "${RESULTS_ARRAY[@]}"; do
-            t=$(echo "$entry" | grep -oP '"tool":"\K[^"]+')
-            r=$(echo "$entry" | grep -oP '"result":"\K[^"]+')
+            t=$(echo "$entry" | sed -n 's/.*"tool":"\([^"]*\)".*/\1/p')
+            r=$(echo "$entry" | sed -n 's/.*"result":"\([^"]*\)".*/\1/p')
             if [[ "$r" == "pass" ]]; then
                 echo "| $t | :white_check_mark: pass |"
             else

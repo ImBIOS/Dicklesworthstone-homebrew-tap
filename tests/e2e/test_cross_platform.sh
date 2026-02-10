@@ -116,7 +116,7 @@ test_formula_urls_reachable() {
 
         # Extract first URL from formula
         local url
-        url=$(grep -oP 'url\s+"?\K[^"]+' "$formula" 2>/dev/null | head -1)
+        url=$(sed -n 's/.*url\s*"\([^"]*\)".*/\1/p' "$formula" 2>/dev/null | head -1)
         [[ -z "$url" ]] && continue
 
         local http_code
