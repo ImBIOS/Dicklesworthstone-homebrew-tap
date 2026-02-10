@@ -350,6 +350,7 @@ main() {
   test_dcg
   test_tru
   test_ntm
+  test_tr
 
   generate_results
   print_summary

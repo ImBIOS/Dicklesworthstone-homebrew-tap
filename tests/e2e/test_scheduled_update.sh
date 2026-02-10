@@ -40,7 +40,11 @@ test_update_formula_handles_version_comparison() {
     assert_file_exists "$script" "update-formula.sh exists"
 
     # Verify it handles version input
-    assert_file_contains "$script" "version\|VERSION" "Should handle version parameter"
+    if grep -qE 'version|VERSION' "$script" 2>/dev/null; then
+        pass "Should handle version parameter"
+    else
+        fail "Should handle version parameter"
+    fi
 
     teardown_test
 }

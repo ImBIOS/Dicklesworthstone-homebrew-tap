@@ -92,7 +92,7 @@ test_git_commit_per_tool() {
     fi
 
     # Check that commits reference specific tool
-    if grep -q 'update.*\$.*tool\|update.*\$.*TOOL\|update.*matrix' "$workflow" 2>/dev/null; then
+    if grep -qE 'update.*\$.*tool|update.*\$.*TOOL|update.*matrix' "$workflow" 2>/dev/null; then
         pass "Commits reference specific tool name"
     else
         log_test "WARN" "Cannot verify per-tool commit messages"

@@ -24,7 +24,7 @@ test_formulas_have_platform_urls() {
         # Check formula has platform-specific blocks
         if grep -qE 'on_macos|on_linux|on_arm|on_intel|Hardware::CPU' "$f" 2>/dev/null; then
             pass "Formula $name has platform-specific configuration"
-        elif grep -qE 'url.*darwin\|url.*linux\|url.*arm64\|url.*x86_64\|url.*amd64' "$f" 2>/dev/null; then
+        elif grep -qE 'url.*darwin|url.*linux|url.*arm64|url.*x86_64|url.*amd64' "$f" 2>/dev/null; then
             pass "Formula $name has platform-specific URLs"
         else
             log_test "WARN" "Formula $name may lack platform specificity"
@@ -151,7 +151,7 @@ test_current_platform_formulas() {
             log_test "INFO" "macOS ARM detected"
             for f in "$REPO_DIR"/Formula/*.rb; do
                 [[ "$f" == *"TEMPLATE"* || "$f" == *".gitkeep"* ]] && continue
-                if grep -qE 'darwin.*arm64\|on_macos' "$f" 2>/dev/null || ! grep -q 'on_linux' "$f" 2>/dev/null; then
+                if grep -qE 'darwin.*arm64|on_macos' "$f" 2>/dev/null || ! grep -q 'on_linux' "$f" 2>/dev/null; then
                     compatible=$((compatible + 1))
                 fi
             done
@@ -160,7 +160,7 @@ test_current_platform_formulas() {
             log_test "INFO" "Linux x86_64 detected"
             for f in "$REPO_DIR"/Formula/*.rb; do
                 [[ "$f" == *"TEMPLATE"* || "$f" == *".gitkeep"* ]] && continue
-                if grep -qE 'linux.*x86_64\|linux.*amd64\|on_linux' "$f" 2>/dev/null || ! grep -q 'on_macos' "$f" 2>/dev/null; then
+                if grep -qE 'linux.*x86_64|linux.*amd64|on_linux' "$f" 2>/dev/null || ! grep -q 'on_macos' "$f" 2>/dev/null; then
                     compatible=$((compatible + 1))
                 fi
             done
