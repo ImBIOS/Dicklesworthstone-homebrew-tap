@@ -558,7 +558,7 @@ homebrew-tap/
 
 ## License
 
-Each tool has its own license. Check the individual repositories for details. This tap repository itself is MIT licensed.
+Each tool has its own license. Check the individual repositories for details. This tap repository itself is MIT licensed (with OpenAI/Anthropic Rider).
 
 ## Contributing
 
