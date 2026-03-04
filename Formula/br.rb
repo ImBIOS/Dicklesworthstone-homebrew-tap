@@ -1,36 +1,41 @@
+# typed: false
+# frozen_string_literal: true
+
 # br (beads_rust) - Homebrew formula
 # Agent-first issue tracker with SQLite + JSONL sync
 
 class Br < Formula
   desc "Agent-first issue tracker with SQLite + JSONL sync"
   homepage "https://github.com/Dicklesworthstone/beads_rust"
-  version "0.1.20"
+  version "0.1.21"
   license "MIT"
 
   on_macos do
     on_arm do
       url "https://github.com/Dicklesworthstone/beads_rust/releases/download/v#{version}/br-v#{version}-darwin_arm64.tar.gz"
-      sha256 "705a13ab7c972bff97440656633210ca2c88cd49c1094a6007a98983d73fbb1d"
+      sha256 "0e2b96b6d89fdf7d5a1b8ae2d3b0fa5c5d739ea598f49b46c93629a0cbb0bdc1"
     end
     on_intel do
       url "https://github.com/Dicklesworthstone/beads_rust/releases/download/v#{version}/br-v#{version}-darwin_amd64.tar.gz"
-      sha256 "b53f109e3f288d23d2918bc9dcf7fa9997351d79bfab6be54ca18bc41d504d58"
+      sha256 "d49d426147d6d7269fa3562178021c13dc2c006fdc417be0b08ac260be0453e6"
     end
   end
 
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/beads_rust/releases/download/v#{version}/br-v#{version}-linux_amd64.tar.gz"
-      sha256 "aefc2ef6b16c7b275f6890636c110540c7bc081e203a1e8a706a376207d1f9dd"
+      sha256 "10d1ac74ce8eab761fb72ff632fc019edad75dd4d49c867c4655f53684d18832"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/beads_rust/releases/download/v#{version}/br-v#{version}-linux_arm64.tar.gz"
-      sha256 "20899316274b7ac40de477f3318a3d6391f7885c6cd1bec7ba10e828360207fb"
+      sha256 "50ac4fdd829e63d2b36158fad038855b19e5f17394a5fd1a09f970842e23b761"
     end
   end
 
   def install
     bin.install "br"
+
+    generate_completions_from_executable(bin/"br", "completions")
   end
 
   def caveats
