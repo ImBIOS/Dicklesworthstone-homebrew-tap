@@ -19,7 +19,7 @@ class Cass < Formula
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-amd64.tar.gz"
-      sha256 "32ccb596de7e72b31f186f3b2fb14764386e4606bb976585ecc4f0db3dffaffb"
+      sha256 "4407147b7e62ef94303e8650285af5fcbb53770d4ae8712b1473b6ab396ffce3"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-arm64.tar.gz"
