@@ -24,6 +24,59 @@ fi
 
 echo "Updating $TOOL to version $VERSION"
 
+require_sha256() {
+  local label="$1"
+  local value="$2"
+  if [[ ! "$value" =~ ^[a-f0-9]{64}$ ]]; then
+    echo "Error: invalid SHA256 for ${label}: ${value}" >&2
+    exit 1
+  fi
+}
+
+json_checksum_for_asset() {
+  local asset="$1"
+  local checksums_json="${CASS_RELEASE_CHECKSUMS_JSON:-}"
+
+  if [[ -z "$checksums_json" || "$checksums_json" == "null" || "$checksums_json" == "{}" ]]; then
+    return 0
+  fi
+
+  CHECKSUMS_JSON="$checksums_json" ruby -e '
+    require "json"
+
+    payload = ENV.fetch("CHECKSUMS_JSON", "")
+    asset = ARGV.fetch(0)
+    parsed = JSON.parse(payload)
+    value = parsed[asset]
+    puts value if value.is_a?(String)
+  ' "$asset"
+}
+
+fetch_release_sha256() {
+  local repo="$1"
+  local asset="$2"
+
+  curl -fsSL \
+    "https://github.com/${repo}/releases/download/v${VERSION}/${asset}.sha256" \
+    | awk "{print \$1}"
+}
+
+resolve_cass_checksum() {
+  local asset="$1"
+  local checksum=""
+
+  checksum="$(json_checksum_for_asset "$asset")"
+  if [[ -n "$checksum" ]]; then
+    require_sha256 "$asset (dispatch payload)" "$checksum"
+    echo "$checksum"
+    return 0
+  fi
+
+  checksum="$(fetch_release_sha256 "Dicklesworthstone/coding_agent_session_search" "$asset")"
+  require_sha256 "$asset (release asset)" "$checksum"
+  echo "$checksum"
+}
+
 # Tool-specific update logic
 case "$TOOL" in
   ru)
@@ -39,16 +92,14 @@ case "$TOOL" in
     ;;
 
   cass)
-    # cass has multi-arch binaries (macOS Intel/ARM + Linux Intel/ARM)
+    # cass publishes macOS arm64 plus Linux amd64/arm64 archives.
     echo "Fetching checksums for cass..."
 
-    MACOS_ARM=$(curl -sL "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v${VERSION}/coding-agent-search-aarch64-apple-darwin.tar.xz.sha256" | cut -d' ' -f1)
-    MACOS_INTEL=$(curl -sL "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v${VERSION}/coding-agent-search-x86_64-apple-darwin.tar.xz.sha256" | cut -d' ' -f1)
-    LINUX_ARM=$(curl -sL "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v${VERSION}/coding-agent-search-aarch64-unknown-linux-gnu.tar.xz.sha256" | cut -d' ' -f1)
-    LINUX_INTEL=$(curl -sL "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v${VERSION}/coding-agent-search-x86_64-unknown-linux-gnu.tar.xz.sha256" | cut -d' ' -f1)
+    MACOS_ARM=$(resolve_cass_checksum "cass-darwin-arm64.tar.gz")
+    LINUX_ARM=$(resolve_cass_checksum "cass-linux-arm64.tar.gz")
+    LINUX_INTEL=$(resolve_cass_checksum "cass-linux-amd64.tar.gz")
 
     echo "  macOS ARM: $MACOS_ARM"
-    echo "  macOS Intel: $MACOS_INTEL"
     echo "  Linux ARM: $LINUX_ARM"
     echo "  Linux Intel: $LINUX_INTEL"
 
@@ -58,22 +109,17 @@ case "$TOOL" in
     # Update checksums using Ruby-aware replacement (match by URL content to disambiguate blocks)
     ruby -i.bak -e '
       content = File.read(ARGV[0])
-      # Replace macOS Intel checksum (url contains x86_64-apple-darwin)
-      content.gsub!(/url[^\n]+x86_64-apple-darwin[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
-        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_INTEL"'\"")
-      }
-      # Replace macOS ARM checksum (url contains aarch64-apple-darwin)
-      content.gsub!(/url[^\n]+aarch64-apple-darwin[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
-        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$MACOS_ARM"'\"")
-      }
-      # Replace Linux Intel checksum (url contains x86_64-unknown-linux-gnu)
-      content.gsub!(/url[^\n]+x86_64-unknown-linux-gnu[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
-        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$LINUX_INTEL"'\"")
-      }
-      # Replace Linux ARM checksum (url contains aarch64-unknown-linux-gnu)
-      content.gsub!(/url[^\n]+aarch64-unknown-linux-gnu[^\n]+\n\s+sha256 "[a-f0-9]+"/) { |m|
-        m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"'"$LINUX_ARM"'\"")
-      }
+      {
+        "cass-darwin-arm64.tar.gz" => "'"$MACOS_ARM"'",
+        "cass-linux-amd64.tar.gz" => "'"$LINUX_INTEL"'",
+        "cass-linux-arm64.tar.gz" => "'"$LINUX_ARM"'"
+      }.each do |asset, sha|
+        pattern = /url[^\n]+#{Regexp.escape(asset)}[^\n]*\n\s+sha256 "[a-f0-9]+"/
+        replaced = content.gsub!(pattern) { |m|
+          m.sub(/sha256 "[a-f0-9]+"/, "sha256 \"#{sha}\"")
+        }
+        abort "did not find checksum block for #{asset}" unless replaced
+      end
       File.write(ARGV[0], content)
     ' "$FORMULA_FILE"
     ;;

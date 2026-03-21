@@ -25,6 +25,7 @@ MOCK
     # Mock sha256sum
     cat > "$_TEST_DIR/bin/sha256sum" <<'MOCK'
 #!/usr/bin/env bash
+cat >/dev/null
 echo "deadbeef0123456789abcdef0123456789abcdef0123456789abcdef01234567  -"
 MOCK
     chmod +x "$_TEST_DIR/bin/sha256sum"
@@ -40,6 +41,17 @@ MOCK
 # Run update-formula.sh with mocked PATH
 run_update() {
     (cd "$_TEST_DIR" && PATH="$_TEST_DIR/bin:$PATH" bash "$UPDATE_SCRIPT" "$@" 2>&1)
+}
+
+run_update_with_checksums_json() {
+    local checksums_json="$1"
+    shift
+    (
+        cd "$_TEST_DIR" \
+            && PATH="$_TEST_DIR/bin:$PATH" \
+                CASS_RELEASE_CHECKSUMS_JSON="$checksums_json" \
+                bash "$UPDATE_SCRIPT" "$@" 2>&1
+    )
 }
 
 #==============================================================================
@@ -205,7 +217,7 @@ FORMULA
 # Tests: cass (multi-arch) formula update
 #==============================================================================
 
-test_cass_fetches_four_checksums() {
+test_cass_fetches_current_release_checksums() {
     setup_formula_env
 
     # Mock curl to return different checksums based on URL
@@ -216,16 +228,15 @@ for arg in "$@"; do
     [[ "$arg" != -* ]] && url="$arg"
 done
 case "$url" in
-    *aarch64-apple-darwin*)  echo "aaaa0000000000000000000000000000000000000000000000000000aaaa0000  file" ;;
-    *x86_64-apple-darwin*)   echo "bbbb0000000000000000000000000000000000000000000000000000bbbb0000  file" ;;
-    *aarch64-unknown-linux*) echo "cccc0000000000000000000000000000000000000000000000000000cccc0000  file" ;;
-    *x86_64-unknown-linux*)  echo "dddd0000000000000000000000000000000000000000000000000000dddd0000  file" ;;
+    *cass-darwin-arm64.tar.gz.sha256) echo "aaaa0000000000000000000000000000000000000000000000000000aaaa0000  file" ;;
+    *cass-linux-arm64.tar.gz.sha256)  echo "cccc0000000000000000000000000000000000000000000000000000cccc0000  file" ;;
+    *cass-linux-amd64.tar.gz.sha256)  echo "dddd0000000000000000000000000000000000000000000000000000dddd0000  file" ;;
     *) echo "0000000000000000000000000000000000000000000000000000000000000000  file" ;;
 esac
 MOCK
     chmod +x "$_TEST_DIR/bin/curl"
 
-    # Create multi-arch formula
+    # Create current cass formula
     cat > "$_TEST_DIR/Formula/cass.rb" <<'FORMULA'
 class Cass < Formula
   desc "Coding Agent Session Search"
@@ -233,22 +244,18 @@ class Cass < Formula
   license "MIT"
 
   on_macos do
-    on_intel do
-      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/coding-agent-search-x86_64-apple-darwin.tar.xz"
-      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
-    end
     on_arm do
-      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/coding-agent-search-aarch64-apple-darwin.tar.xz"
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/cass-darwin-arm64.tar.gz"
       sha256 "0000000000000000000000000000000000000000000000000000000000000000"
     end
   end
   on_linux do
     on_intel do
-      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/coding-agent-search-x86_64-unknown-linux-gnu.tar.xz"
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/cass-linux-amd64.tar.gz"
       sha256 "0000000000000000000000000000000000000000000000000000000000000000"
     end
     on_arm do
-      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/coding-agent-search-aarch64-unknown-linux-gnu.tar.xz"
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.1.50/cass-linux-arm64.tar.gz"
       sha256 "0000000000000000000000000000000000000000000000000000000000000000"
     end
   end
@@ -266,10 +273,60 @@ FORMULA
 
     assert_equals "0" "$exit_code" "cass update should succeed"
     assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'version "0.1.55"' "Version updated"
-    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "bbbb' "macOS Intel checksum updated"
     assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "aaaa' "macOS ARM checksum updated"
     assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "dddd' "Linux Intel checksum updated"
     assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "cccc' "Linux ARM checksum updated"
+}
+
+test_cass_prefers_dispatch_payload_checksums() {
+    setup_formula_env
+
+    cat > "$_TEST_DIR/bin/curl" <<'MOCK'
+#!/usr/bin/env bash
+exit 1
+MOCK
+    chmod +x "$_TEST_DIR/bin/curl"
+
+    cat > "$_TEST_DIR/Formula/cass.rb" <<'FORMULA'
+class Cass < Formula
+  desc "Coding Agent Session Search"
+  version "0.2.1"
+  license "MIT"
+
+  on_macos do
+    on_arm do
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.2.1/cass-darwin-arm64.tar.gz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+  end
+
+  on_linux do
+    on_intel do
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.2.1/cass-linux-amd64.tar.gz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+    on_arm do
+      url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v0.2.1/cass-linux-arm64.tar.gz"
+      sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+    end
+  end
+end
+FORMULA
+
+    if ! command -v ruby &>/dev/null; then
+        echo "SKIP: ruby not available"
+        return 0
+    fi
+
+    local checksums='{"cass-darwin-arm64.tar.gz":"aaaa0000000000000000000000000000000000000000000000000000aaaa0000","cass-linux-amd64.tar.gz":"dddd0000000000000000000000000000000000000000000000000000dddd0000","cass-linux-arm64.tar.gz":"cccc0000000000000000000000000000000000000000000000000000cccc0000"}'
+    local exit_code=0
+    run_update_with_checksums_json "$checksums" cass 0.2.2 > /dev/null || exit_code=$?
+
+    assert_equals "0" "$exit_code" "cass update should succeed from dispatch checksums alone"
+    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'version "0.2.2"' "Version updated"
+    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "aaaa' "macOS ARM checksum updated from dispatch payload"
+    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "dddd' "Linux Intel checksum updated from dispatch payload"
+    assert_file_contains "$_TEST_DIR/Formula/cass.rb" 'sha256 "cccc' "Linux ARM checksum updated from dispatch payload"
 }
 
 #==============================================================================
@@ -462,7 +519,8 @@ run_test test_ru_updates_version_and_checksum
 run_test test_ru_preserves_other_fields
 run_test test_ru_cleans_up_backup
 run_test test_ubs_updates_version_and_checksum
-run_test test_cass_fetches_four_checksums
+run_test test_cass_fetches_current_release_checksums
+run_test test_cass_prefers_dispatch_payload_checksums
 run_test test_xf_parses_sha256sums_file
 run_test test_cm_updates_three_architectures
 run_test test_idempotent_ru_update

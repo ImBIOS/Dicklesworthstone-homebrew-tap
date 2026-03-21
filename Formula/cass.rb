@@ -10,7 +10,7 @@ class Cass < Formula
   on_macos do
     on_arm do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-darwin-arm64.tar.gz"
-      sha256 "2bb66d93ec86b1f8b2235c7e75fce799281026912e0aa4dcfa14911ce26ca95f"
+      sha256 "7fa79cb08052b54143bd50efd803f3045f13b71fe6d34a64525856dd2c21a832"
     end
     # No Intel macOS build currently available
     # Apple Silicon (arm64) binaries can run on Intel via Rosetta 2
@@ -19,11 +19,11 @@ class Cass < Formula
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-amd64.tar.gz"
-      sha256 "4407147b7e62ef94303e8650285af5fcbb53770d4ae8712b1473b6ab396ffce3"
+      sha256 "71e489eaa4d21a78649a0ccfc3bf892caa1492756a9e96c6ce31a47d08794033"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-arm64.tar.gz"
-      sha256 "70a4e7999b925031e746e9b6128e2f634b1a934ccce070f1f464fa47d128bbeb"
+      sha256 "a29f12eb6170fd303ffc8f08093e947297f937a9bfed9a8dd63448a9825d46ad"
     end
   end
 

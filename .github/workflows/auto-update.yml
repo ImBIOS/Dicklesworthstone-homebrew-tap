@@ -53,12 +53,20 @@ jobs:
           if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
             echo "tool=${{ github.event.client_payload.tool }}" >> $GITHUB_OUTPUT
             echo "version=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+            {
+              echo "checksums_json<<EOF"
+              echo '${{ toJson(github.event.client_payload.checksums) }}'
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           else
             echo "tool=${{ inputs.tool }}" >> $GITHUB_OUTPUT
             echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "checksums_json={}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Update formula
+        env:
+          CASS_RELEASE_CHECKSUMS_JSON: ${{ steps.params.outputs.checksums_json }}
         run: |
           chmod +x scripts/update-formula.sh
           ./scripts/update-formula.sh "${{ steps.params.outputs.tool }}" "${{ steps.params.outputs.version }}"
