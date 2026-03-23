@@ -1,8 +1,5 @@
 # Dicklesworthstone Homebrew Tap
 
-[![Test Formulas](https://github.com/Dicklesworthstone/homebrew-tap/actions/workflows/test-formulas.yml/badge.svg)](https://github.com/Dicklesworthstone/homebrew-tap/actions/workflows/test-formulas.yml)
-[![E2E Tests](https://github.com/Dicklesworthstone/homebrew-tap/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/Dicklesworthstone/homebrew-tap/actions/workflows/e2e-tests.yml)
-
 Homebrew formulas for the **Dicklesworthstone Stack** - a collection of powerful tools designed for AI coding agents and developer productivity.
 
 ## Quick Start
