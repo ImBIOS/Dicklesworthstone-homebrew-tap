@@ -200,8 +200,10 @@ case "$TOOL" in
     echo "Fetching checksum for ubs..."
     CHECKSUM=$(curl -sL "${URL}" | sha256sum | cut -d' ' -f1)
 
-    # Update version
+    # Update version (if explicit version line exists)
     sed -i.bak "s/version \"[^\"]*\"/version \"${VERSION}\"/" "$FORMULA_FILE"
+    # Update URL (version is embedded in the URL path for ubs)
+    sed -i.bak "s|/ultimate_bug_scanner/v[^/]*/ubs|/ultimate_bug_scanner/v${VERSION}/ubs|" "$FORMULA_FILE"
     # Update checksum
     sed -i.bak "s/sha256 \"[a-f0-9]*\"/sha256 \"${CHECKSUM}\"/" "$FORMULA_FILE"
     ;;
