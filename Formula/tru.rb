@@ -4,7 +4,7 @@
 class Tru < Formula
   desc "TOON encoder/decoder - Token-Optimized Object Notation"
   homepage "https://github.com/Dicklesworthstone/toon_rust"
-  version "0.2.1"
+  version "0.2.3"
   license "MIT"
 
   on_macos do
