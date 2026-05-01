@@ -4,20 +4,20 @@
 class Dcg < Formula
   desc "Destructive Command Guard - Safety rails for AI coding agents"
   homepage "https://github.com/Dicklesworthstone/destructive_command_guard"
-  version "0.4.5"
+  version "0.4.11"
   license "MIT"
 
   on_macos do
     on_arm do
       url "https://github.com/Dicklesworthstone/destructive_command_guard/releases/download/v0.3.0/dcg-aarch64-apple-darwin.tar.xz"
-      sha256 "d153fb5497db00ca6e253f58da1fae18ffcbed8633f610349e36860a27eec296"
+      sha256 "197266be8de3d2774eb338ebe10022216b8852f5a6cb9b9bc372fb4b278e72e9"
     end
   end
 
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/destructive_command_guard/releases/download/v0.3.0/dcg-x86_64-unknown-linux-gnu.tar.xz"
-      sha256 "0a82555f9b15c69e55b6eaed2d73055671e62b50b13f39c10612d8de01b71f4e"
+      sha256 "f842410c69a22232b0ad0e394f953734a4a04d8b95c6634b34ac8f3f36a53030"
     end
   end
 
