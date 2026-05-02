@@ -4,8 +4,8 @@
 class Ubs < Formula
   desc "Comprehensive code analysis tool for finding bugs and security issues"
   homepage "https://github.com/Dicklesworthstone/ultimate_bug_scanner"
-  url "https://raw.githubusercontent.com/Dicklesworthstone/ultimate_bug_scanner/v5.2.22/ubs"
-  sha256 "a23762717f3169a44c92a97150003a816ab33760196392bf83a11c28fdb9b491"
+  url "https://raw.githubusercontent.com/Dicklesworthstone/ultimate_bug_scanner/v5.2.23/ubs"
+  sha256 "430178ed620257909cdefbf33ab20ca3973b3d9b6dedb31100c4153ad648b83e"
   license "MIT"
 
   # Runtime dependencies
