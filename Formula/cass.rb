@@ -4,13 +4,13 @@
 class Cass < Formula
   desc "Cross-agent session search - index and search AI coding agent conversations"
   homepage "https://github.com/Dicklesworthstone/coding_agent_session_search"
-  version "0.4.1"
+  version "0.4.2"
   license "MIT"
 
   on_macos do
     on_arm do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-darwin-arm64.tar.gz"
-      sha256 "f409da9db762035a9fe70a9e72b1cdbb0b04d4351f5cd3afc8382ee61200fce3"
+      sha256 "f31f7542170f4206b7381edf60739748ccffc6392255da37f4e55d99a3cc295c"
     end
     # No Intel macOS build currently available
     # Apple Silicon (arm64) binaries can run on Intel via Rosetta 2
@@ -19,11 +19,11 @@ class Cass < Formula
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-amd64.tar.gz"
-      sha256 "770a63fb2b4e6ede2e61be7ee71dd13714ffa3dfe7dd64b3ed7a6709cff31ad3"
+      sha256 "2560d92ad2317a2351088443926f40d959e200bb7256fe1a6735d69e3a7debea"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-arm64.tar.gz"
-      sha256 "e4d3e66f6e23c8aa5600b47de2e151fee4e3bb9cbe7600a1bbcd0827ef9cc8f6"
+      sha256 "4cc568670b37a109edad64c8162fe45880bb037924705b33ad679f15925a72f4"
     end
   end
 

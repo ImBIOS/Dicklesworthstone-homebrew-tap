@@ -55,10 +55,50 @@ json_checksum_for_asset() {
 fetch_release_sha256() {
   local repo="$1"
   local asset="$2"
+  local checksum=""
+  local sums_asset=""
+  local sums=""
 
-  curl -fsSL \
-    "https://github.com/${repo}/releases/download/v${VERSION}/${asset}.sha256" \
-    | awk "{print \$1}"
+  if checksum="$(
+    curl -fsSL \
+      "https://github.com/${repo}/releases/download/v${VERSION}/${asset}.sha256" \
+      2>/dev/null \
+      | awk "{print \$1}"
+  )" && [[ -n "$checksum" ]]; then
+    echo "$checksum"
+    return 0
+  fi
+
+  for sums_asset in SHA256SUMS SHA256SUMS.txt; do
+    if ! sums="$(
+      curl -fsSL \
+        "https://github.com/${repo}/releases/download/v${VERSION}/${sums_asset}" \
+        2>/dev/null
+    )"; then
+      continue
+    fi
+
+    if checksum="$(
+      awk -v asset="$asset" '
+        $2 == asset {
+          print $1
+          found = 1
+          exit
+        }
+        END {
+          if (!found) {
+            exit 1
+          }
+        }
+      ' <<< "$sums"
+    )" && [[ -n "$checksum" ]]; then
+      echo "$checksum"
+      return 0
+    fi
+  done
+
+  echo "Error: could not find checksum for ${asset} in ${repo} v${VERSION}" >&2
+  return 1
 }
 
 resolve_cass_checksum() {
