@@ -414,7 +414,7 @@ scoop update && scoop info <tool>
 ```
 
 **What happens automatically:**
-- GitHub Actions builds binaries for all platforms (Linux, macOS Intel/ARM, Windows)
+- GitHub Actions builds binaries for each tool's supported platforms
 - Creates GitHub release with tarballs/zips
 - Triggers `formula-update` event to homebrew-tap
 - Triggers `manifest-update` event to scoop-bucket
