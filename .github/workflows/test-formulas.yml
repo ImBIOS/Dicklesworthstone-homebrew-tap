@@ -153,6 +153,12 @@ jobs:
             echo "Platform: $(uname -sm)" | tee -a "$log"
             echo "Homebrew: $(brew --version | head -1)" | tee -a "$log"
 
+            if [[ "$tool" == "cass" ]]; then
+              echo "Skipping cass on macOS Intel: v0.4.2 does not publish a Darwin x86_64 archive." | tee -a "$log"
+              echo "::endgroup::"
+              continue
+            fi
+
             # Install
             echo "--- Installing ---" | tee -a "$log"
             if brew install --verbose "$formula" 2>&1 | tee -a "$log"; then

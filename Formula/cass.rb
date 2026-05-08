@@ -12,8 +12,8 @@ class Cass < Formula
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-darwin-arm64.tar.gz"
       sha256 "f31f7542170f4206b7381edf60739748ccffc6392255da37f4e55d99a3cc295c"
     end
-    # No Intel macOS build currently available
-    # Apple Silicon (arm64) binaries can run on Intel via Rosetta 2
+    # No Intel macOS build is published for cass v0.4.2.
+    # Intel macOS users should use the upstream install script with --from-source.
   end
 
   on_linux do

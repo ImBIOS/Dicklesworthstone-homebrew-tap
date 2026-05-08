@@ -48,7 +48,7 @@ brew install dicklesworthstone/tap/cass
 
 | Tool | macOS Intel | macOS ARM | Linux x86 | Linux ARM |
 |------|:-----------:|:---------:|:---------:|:---------:|
-| cass | ✅ | ✅ | ✅ | ✅ |
+| cass | - | ✅ | ✅ | ✅ |
 | xf   | ✅ | ✅ | ✅ | - |
 | cm   | ✅ | ✅ | ✅ | - |
 | ru   | ✅ | ✅ | ✅ | ✅ |
@@ -59,7 +59,7 @@ brew install dicklesworthstone/tap/cass
 | dcg  | - | ✅ | ✅ | - |
 | tru  | ✅ | ✅ | ✅ | ✅ |
 
-> **Note**: ru and ubs are Bash scripts that work on any Unix-like system. bv, caam, and slb are managed by GoReleaser. dcg v0.3.0 currently only has macOS ARM and Linux x86 builds.
+> **Note**: ru and ubs are Bash scripts that work on any Unix-like system. cass currently publishes Homebrew archives for Apple Silicon macOS, Linux x86, and Linux ARM; Intel macOS users should use the upstream install script with `--from-source`. bv, caam, and slb are managed by GoReleaser. dcg v0.3.0 currently only has macOS ARM and Linux x86 builds.
 
 ## Tool Details
 

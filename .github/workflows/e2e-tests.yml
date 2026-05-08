@@ -78,6 +78,10 @@ jobs:
             [[ "$formula" == *".gitkeep"* ]] && continue
             [[ "$formula" == *"TEMPLATE"* ]] && continue
             name=$(basename "$formula" .rb)
+            if [[ "$name" == "cass" ]]; then
+              echo "::notice::Skipping cass on macOS Intel: v0.4.2 does not publish a Darwin x86_64 archive."
+              continue
+            fi
             echo "::group::Installing $name"
             brew install "dicklesworthstone/tap/$name" || echo "::warning::Failed to install $name"
             echo "::endgroup::"
