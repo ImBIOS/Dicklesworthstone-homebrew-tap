@@ -8,6 +8,14 @@ Repository: <https://github.com/Dicklesworthstone/homebrew-tap>
 
 ---
 
+## 2026-05-14 -- br v0.2.10
+
+### Formula updates
+
+- **br** (beads_rust) updated to **v0.2.10**. The formula now consumes the DSR-published `br-<version>-<platform>` archives for macOS Intel, macOS ARM, Linux x86_64, and Linux ARM64, with SHA256 checksums copied from the release assets.
+
+---
+
 ## 2026-03-21 -- Auto-update pipeline gains dispatch-payload checksums
 
 ### Update infrastructure
@@ -332,11 +340,11 @@ The first commit to this repository. GoReleaser from the ntm (Named Tmux Manager
 
 ---
 
-## Current formula versions (as of 2026-03-21)
+## Current formula versions (as of 2026-05-14)
 
 | Formula | Version | Type | Source |
 |---------|---------|------|--------|
-| br      | 0.1.21  | Rust binary (4 platforms) | [beads_rust](https://github.com/Dicklesworthstone/beads_rust) |
+| br      | 0.2.10  | Rust binary (4 platforms) | [beads_rust](https://github.com/Dicklesworthstone/beads_rust) |
 | bv      | 0.15.0  | GoReleaser (Go) | [beads_viewer](https://github.com/Dicklesworthstone/beads_viewer) |
 | caam    | 0.1.10  | GoReleaser (Go) | [coding_agent_account_manager](https://github.com/Dicklesworthstone/coding_agent_account_manager) |
 | cass    | 0.2.2   | Rust binary (3 platforms) | [coding_agent_session_search](https://github.com/Dicklesworthstone/coding_agent_session_search) |

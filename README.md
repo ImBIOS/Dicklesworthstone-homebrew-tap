@@ -27,7 +27,9 @@ brew install dicklesworthstone/tap/cass
 | Tool | Description | Install |
 |------|-------------|---------|
 | **[bv](https://github.com/Dicklesworthstone/beads_viewer)** | Beads Viewer - Graph-aware task management TUI | `brew install dicklesworthstone/tap/bv` |
+| **[br](https://github.com/Dicklesworthstone/beads_rust)** | Beads - Agent-first issue tracker with SQLite + JSONL sync | `brew install dicklesworthstone/tap/br` |
 | **[caam](https://github.com/Dicklesworthstone/coding_agent_account_manager)** | Coding Agent Account Manager - Switch between AI agent accounts | `brew install dicklesworthstone/tap/caam` |
+| **[rch](https://github.com/Dicklesworthstone/remote_compilation_helper)** | Remote Compilation Helper - Offload AI-agent compilation commands to remote workers | `brew install dicklesworthstone/tap/rch` |
 | **[slb](https://github.com/Dicklesworthstone/simultaneous_launch_button)** | Simultaneous Launch Button - Two-person rule for dangerous commands | `brew install dicklesworthstone/tap/slb` |
 
 ### Repository & Code Management
@@ -54,7 +56,9 @@ brew install dicklesworthstone/tap/cass
 | ru   | ✅ | ✅ | ✅ | ✅ |
 | ubs  | ✅ | ✅ | ✅ | ✅ |
 | bv   | ✅ | ✅ | ✅ | ✅ |
+| br   | ✅ | ✅ | ✅ | ✅ |
 | caam | ✅ | ✅ | ✅ | ✅ |
+| rch  | ✅ | ✅ | ✅ | ✅ |
 | slb  | ✅ | ✅ | ✅ | ✅ |
 | dcg  | - | ✅ | ✅ | - |
 | tru  | ✅ | ✅ | ✅ | ✅ |
