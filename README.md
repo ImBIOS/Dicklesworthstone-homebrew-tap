@@ -92,14 +92,17 @@ cass search "database" --json
 Persistent vector-based memory system that helps AI agents remember context across sessions:
 
 ```bash
-# Check system status
-cm status
+# Initialize configuration and playbook
+cm init
 
-# Store a memory
-cm store "The user prefers tabs over spaces"
+# Show playbook health metrics
+cm stats
 
-# Recall relevant memories
-cm recall "code formatting preferences"
+# Add a rule/memory to the playbook
+cm add "The user prefers tabs over spaces"
+
+# Get relevant rules and history for a task
+cm context "code formatting preferences"
 ```
 
 ### xf - X-Former (Twitter Search)
