@@ -4,13 +4,13 @@
 class Cass < Formula
   desc "Cross-agent session search - index and search AI coding agent conversations"
   homepage "https://github.com/Dicklesworthstone/coding_agent_session_search"
-  version "0.6.15"
+  version "0.6.16"
   license "MIT"
 
   on_macos do
     on_arm do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-darwin-arm64.tar.gz"
-      sha256 "91aa414493e75f4d8c4e15b07db3977feff3e01ba7c7e83b484ea7b5ec06044c"
+      sha256 "a5316e25f470838247d4d586887a8d2df8c870667ae2a0f21d397cc5b0538e2f"
     end
     # No Intel macOS build is published for cass v0.4.7.
     # Intel macOS users should use the upstream install script with --from-source.
@@ -19,11 +19,11 @@ class Cass < Formula
   on_linux do
     on_intel do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-amd64.tar.gz"
-      sha256 "6af28141ae283c8a47800568b3d901a03c5dd5f01a39b7db28c22bd5f5af72d1"
+      sha256 "91980b9799c78439ea4c674663010f660e5aafdf98e4801f4880d70bc8954d0f"
     end
     on_arm do
       url "https://github.com/Dicklesworthstone/coding_agent_session_search/releases/download/v#{version}/cass-linux-arm64.tar.gz"
-      sha256 "c9a412aa01659838d5fcd761297c4fe7afccae584ec48608db997ea62c0667e2"
+      sha256 "87e1254922b5d2f89332963f4005a2a80788022bb17917ac0efcf2f06788f7a3"
     end
   end
 
